@@ -7,7 +7,7 @@ import jks.tools2d.parallax.heart.Parallax_Utils_Page;
 import static jks.tools2d.parallax.editor.inputs.GVars_Inputs.*;
 import com.badlogic.gdx.InputAdapter;
 
-public class InputProcessus extends InputAdapter 
+public class EditorInputProcessus extends InputAdapter 
 {
 	@Override
 	public boolean keyDown (int keycode) 

@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.mains;
+package jks.tools2d.parallax.editor.texturepacking;
 
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 
