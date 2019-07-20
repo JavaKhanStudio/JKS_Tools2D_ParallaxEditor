@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.vue.edition.data;
+package jks.tools2d.parallax.editor.vue.edition.utils;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;

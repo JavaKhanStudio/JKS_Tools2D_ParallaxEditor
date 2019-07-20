@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.vue.edition.data;
+package jks.tools2d.parallax.editor.vue.edition.utils;
 
 import static jks.tools2d.parallax.editor.gvars.FVars_Extensions.atlasMaxSize;
 import static jks.tools2d.parallax.editor.vue.edition.data.GVars_Vue_Edition.allImage;
@@ -15,6 +15,9 @@ import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import jks.tools2d.filewatch.FileWatching_Image;
 import jks.tools2d.libgdxutils.Utils_Scene2D;
 import jks.tools2d.parallax.editor.gvars.GVars_Ui;
+import jks.tools2d.parallax.editor.vue.edition.data.GVars_Vue_Edition;
+import jks.tools2d.parallax.editor.vue.edition.data.Outside_Source;
+import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
 
 public class Utils_LoadingImages 
 {

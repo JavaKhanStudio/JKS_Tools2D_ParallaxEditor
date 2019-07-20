@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.vue.edition.data;
+package jks.tools2d.parallax.editor.vue.edition.utils;
 
 import static jks.tools2d.parallax.editor.gvars.GVars_Serialization.objectMapper;
 import static jks.tools2d.parallax.editor.vue.edition.VE_Options.parallaxName;
@@ -27,6 +27,9 @@ import jks.tools2d.parallax.editor.gvars.FVars_Extensions;
 import jks.tools2d.parallax.editor.gvars.GVars_Serialization;
 import jks.tools2d.parallax.editor.gvars.GVars_Ui;
 import jks.tools2d.parallax.editor.vue.edition.VE_Options;
+import jks.tools2d.parallax.editor.vue.edition.data.GVars_Vue_Edition;
+import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
+import jks.tools2d.parallax.editor.vue.edition.data.WholePage_Editor;
 import jks.tools2d.parallax.pages.Page_Model;
 import jks.tools2d.parallax.pages.Utils_Page;
 import jks.tools2d.parallax.pages.WholePage_Model;
@@ -51,38 +54,50 @@ public class Utils_Saving
 					break ; 
 			}
 			
-			if(oneOutside)
-				askForFlatening() ; 
+			if(oneOutside || VE_Options.forceExport.isChecked())
+				askForFlatening(where,whatName) ; 
+			else
+				savingExport(where,whatName) ; 
 			
-			WholePage_Model outputFinalModel = buildWholePageForExport(parallaxs) ; 
-				
-			if(VE_Options.formatLibGDX.isChecked())
-				saving_Parallax_Kryo(where,whatName,outputFinalModel) ; 
-			
-			if(VE_Options.formatJson.isChecked())
-				saving_Parallax_JSON(where,whatName,outputFinalModel) ; 
 		}
 		catch(Exception e)
 		{e.printStackTrace();}
 		
 	}
 	
-	private static void askForFlatening() 
+	public static void savingExport(String where, String whatName) throws JsonGenerationException, JsonMappingException, IOException
 	{
-		final Boolean returningValue ; 
+		WholePage_Model outputFinalModel = buildWholePageForExport(parallax_Heart.parallaxReader.layers) ; 
+		
+		if(VE_Options.formatLibGDX.isChecked())
+			saving_Parallax_Kryo(where,whatName,outputFinalModel) ; 
+		
+		if(VE_Options.formatJson.isChecked())
+			saving_Parallax_JSON(where,whatName,outputFinalModel) ; 
+	}
+	
+	private static void askForFlatening(String where, String whatName) 
+	{
 		Dialogs.showOptionDialog(GVars_Ui.mainUi, "option dialog", "Warning ! You have one or more texture from outside the texture atlas. \n Creating the export will flatten the current project, creating a new texture atlas. Would you like to save the project before that?", OptionDialogType.YES_NO_CANCEL, new OptionDialogAdapter() {
 			@Override
 			public void yes () 
 			{
 				saving_Parallax_Project(parallaxPath.getText(), parallaxName.getText());
 				Utils_TextureAtlas.flattenProject(parallaxPath.getText(), parallaxName.getText()) ;
-				
+				try 
+				{savingExport(where,whatName) ;} 
+				catch (Exception e) 
+				{e.printStackTrace();} 
 			}
 
 			@Override
 			public void no () 
 			{
 				Utils_TextureAtlas.flattenProject(parallaxPath.getText(), parallaxName.getText()) ; 
+				try 
+				{savingExport(where,whatName) ;} 
+				catch (Exception e) 
+				{e.printStackTrace();}  
 			}
 
 			@Override

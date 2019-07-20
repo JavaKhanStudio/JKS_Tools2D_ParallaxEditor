@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.vue.edition.data;
+package jks.tools2d.parallax.editor.vue.edition.utils;
 
 import static jks.tools2d.parallax.editor.vue.edition.Vue_Edition.parallax_Heart;
 import static jks.tools2d.parallax.editor.vue.edition.data.GVars_Vue_Edition.projectDatas;
@@ -11,14 +11,17 @@ import org.apache.commons.lang3.StringUtils;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Pixmap.Blending;
 import com.badlogic.gdx.graphics.Pixmap.Filter;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.g2d.PixmapPacker;
-import com.badlogic.gdx.graphics.g2d.PixmapPackerIO;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import static jks.tools2d.parallax.editor.gvars.FVars_Extensions.atlasMaxSize ; 
 
 import jks.tools2d.parallax.ParallaxLayer;
+import jks.tools2d.parallax.editor.vue.edition.data.GVars_Vue_Edition;
+import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
+import jks.tools2d.parallax.editor.vue.edition.pixmap.PixmapPacker;
+import jks.tools2d.parallax.editor.vue.edition.pixmap.PixmapPackerIO;
 
 public class Utils_TextureAtlas 
 {
@@ -30,7 +33,7 @@ public class Utils_TextureAtlas
 			
 		ArrayList<ParallaxLayer> parrallaxLayers = parallax_Heart.parallaxReader.layers ; 
 		PixmapPacker pixmap = findAtlasRequiredSize(parrallaxLayers) ; 
-		
+		pixmap.setPadding(40);
 		Position_Infos info ;
 		
 		ArrayList<String> currentValue = new ArrayList<>() ; 
@@ -41,13 +44,11 @@ public class Utils_TextureAtlas
 			info = GVars_Vue_Edition.imageRef.get(layer.getTexRegion()) ; 
 			pageName = info.getPageName() ;
 			
-			
 			if(currentValue.contains(pageName))
 				continue ;
 			else
 				currentValue.add(pageName) ; 
 			
-		
 			Pixmap pixels = extractRegion(layer.getTexRegion()) ;
 	
 			pixmap.pack(pageName,pixels) ;
@@ -66,7 +67,6 @@ public class Utils_TextureAtlas
 			projectDatas.outsideInfos.clear();
 		
 		parallax_Heart.currentPage.pageModel.atlasName =  atlasName ; 
-		System.out.println("seetting atlas path at " + atlasName);
 	}
 	
 	static final int paddingSize = 10 ; 
@@ -96,6 +96,7 @@ public class Utils_TextureAtlas
 			largestHeight = atlasMaxSize ; 
 		
 		PixmapPacker pixmap = new PixmapPacker(largestWidth, largestHeight, Format.RGBA8888, paddingSize, false); 
+		
 		return pixmap ; 
 		
 	}
@@ -113,11 +114,15 @@ public class Utils_TextureAtlas
 			if (!texture.getTextureData().isPrepared()) 
 			    texture.getTextureData().prepare();
 			
+			
 			pixmapSave = texture.getTextureData().consumePixmap();
+			pixmapSave.setFilter(Pixmap.Filter.NearestNeighbour);	
 		}
 		
 		Pixmap exportingPixmap = new Pixmap(textureRegion.getRegionWidth(), textureRegion.getRegionHeight(), Format.RGBA8888); 
-		exportingPixmap.setFilter(Filter.BiLinear);
+		exportingPixmap.setFilter(Filter.NearestNeighbour);
+		exportingPixmap.setBlending(Blending.None);
+		
 		exportingPixmap.drawPixmap(pixmapSave, textureRegion.getRegionX(), textureRegion.getRegionY(), textureRegion.getRegionWidth(), textureRegion.getRegionHeight(), 0, 0, textureRegion.getRegionWidth(), textureRegion.getRegionHeight());
 		
 		return exportingPixmap ; 
@@ -133,11 +138,11 @@ public class Utils_TextureAtlas
 			if(StringUtils.isNumeric(filePath.substring(lastIndex - 1, lastIndex)))
 			{
 				int[] currentValue = recurciveNumber(filePath,lastIndex,1) ; 
-				newFilePath = filePath.substring(0, lastIndex - currentValue[1]) + currentValue[0] + ".atlas" ; 		
+				newFilePath = filePath.substring(0, lastIndex - currentValue[1]) + (currentValue[0] + 1) + ".atlas" ; 		
 			}
 			else
 			{
-				newFilePath = filePath.substring(0, lastIndex) + ".atlas" ; 
+				newFilePath = filePath.substring(0, lastIndex) + 1 + ".atlas" ; 
 			}
 			
 			return new FileHandle(newFilePath);
@@ -150,10 +155,10 @@ public class Utils_TextureAtlas
 	
 	public static int[] recurciveNumber(String lookingAt, int from, int at)
 	{
-		if(StringUtils.isNumeric(lookingAt.substring(from - at, from)))
-			return new int[] {Integer.parseInt(lookingAt.substring(from - at - 1, from)),from} ; 
+		if(!StringUtils.isNumeric(lookingAt.substring(from - at, from)))
+			return new int[] {Integer.parseInt(lookingAt.substring(from - at + 1, from)),from} ; 
 		else
-			return recurciveNumber(lookingAt,from,at + 1) ; 
+			return recurciveNumber(lookingAt,from,at - 1) ; 
 	}
 	
 }
