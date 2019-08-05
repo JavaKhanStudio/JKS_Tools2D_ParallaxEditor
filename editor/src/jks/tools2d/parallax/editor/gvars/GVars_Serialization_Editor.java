@@ -12,21 +12,20 @@ import jks.tools2d.parallax.editor.vue.edition.data.ParallaxDefaultValues;
 import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
 import jks.tools2d.parallax.editor.vue.edition.data.Project_Data;
 import jks.tools2d.parallax.editor.vue.edition.data.WholePage_Editor;
+import jks.tools2d.parallax.heart.GVars_Serialization;
+import jks.tools2d.parallax.heart.MyMixInForIgnoreType;
 import jks.tools2d.parallax.pages.Color_Serializer;
 import jks.tools2d.parallax.pages.Page_Model;
 import jks.tools2d.parallax.pages.Parallax_Model;
 import jks.tools2d.parallax.pages.WholePage_Model;
 
-public class GVars_Serialization 
+public class GVars_Serialization_Editor 
 {
-
-	public static Kryo kryo ;
-	public static ObjectMapper objectMapper ; 
 
 	public static void init() 
 	{
-		kryo = prepareKryo() ; 
-		objectMapper = prepareJson() ; 
+		GVars_Serialization.kryo = prepareKryo() ; 
+		GVars_Serialization.objectMapper = prepareJson() ; 
 	}
 
 	private static Kryo prepareKryo()
