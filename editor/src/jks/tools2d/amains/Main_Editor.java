@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.mains;
+package jks.tools2d.amains;
 
 import java.io.File;
 

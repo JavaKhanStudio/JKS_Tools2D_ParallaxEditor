@@ -33,7 +33,7 @@ import jks.tools2d.parallax.ParallaxLayer;
 import jks.tools2d.parallax.editor.gvars.GVars_UI;
 import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
 
-public class VE_Tab_TextureConfig extends Tab
+public class VE_Tab_Texture extends Tab
 {
 	JksNumberSlider 
 	decalX_Slider, decalY_Slider,
@@ -81,7 +81,7 @@ public class VE_Tab_TextureConfig extends Tab
 	
 	int totalColspan = 5 ; 
 	
-	public VE_Tab_TextureConfig()
+	public VE_Tab_Texture()
 	{
 		super(false,false) ;
 		

@@ -1,4 +1,4 @@
-package jks.tools2d.parallax.editor.mains;
+package jks.tools2d.amains;
 
 import static jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition.projectDatas;
 import static jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition.projectInfos;
