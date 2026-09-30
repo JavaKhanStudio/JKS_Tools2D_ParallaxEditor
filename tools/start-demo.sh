@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# start-demo.sh libgdx|godot — opens a demo window on the desktop: the board's "Start the demo" buttons (r102,
-# .atelier/actions.toml).
+# start-demo.sh libgdx — opens the demo's window on the desktop: the board's "Start the demo" button (r102,
+# .atelier/actions.toml). The Godot demo is the library's (JKS_Tools2D_ParallaxBackground, tools/start-demo.sh godot).
 #   libgdx  demo/ (ParallaxDemo): the showcase pages, SPACE variant, ENTER next scene, N tint, LEFT/RIGHT scroll, R reset.
-#   godot   engines/godot (demo.tscn): Hiver through the Godot reader, LEFT/RIGHT scroll.
 # The board's server runs as a service, without the desktop's display variables: this script defaults them to the
 # logged-in session's (Wayland socket wayland-0, Xwayland :0 and mutter's cookie), so the window opens on the screen.
 # It returns when the window is closed.
@@ -20,11 +19,7 @@ case "${1:-}" in
 		./gradlew -q :demo:installDist
 		cd demo/assets
 		exec ../build/install/demo/bin/demo ;;
-	godot)
-		GODOT="${GODOT:-godot}"
-		"$GODOT" --headless --path engines/godot --import >/dev/null 2>&1 || true
-		exec "$GODOT" --path engines/godot ;;
 	*)
-		echo "usage: tools/start-demo.sh libgdx|godot" >&2
+		echo "usage: tools/start-demo.sh libgdx" >&2
 		exit 2 ;;
 esac

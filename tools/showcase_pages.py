@@ -2,7 +2,7 @@
 """The showcase bank (r108): the parallax pages the store listings and the presenter's video show.
 
   tools/showcase_pages.py [OUT_DIR]        writes the pages and their round.json (default demo/showcase)
-  tools/parallax-lab-shots.sh demo/showcase demo/build/showcase        renders them (stills + contact.png)
+  ./gradlew :demo:lab --args="demo/showcase --shots demo/build/showcase"   renders them (stills)
   ./gradlew :demo:lab --args="demo/showcase"                           shows them scrolling, to grade
 
 Each page is a .jplax (what browser games and Godot load, and what the editor opens to export a .plax). Its atlas stays

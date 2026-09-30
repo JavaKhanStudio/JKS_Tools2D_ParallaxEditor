@@ -1,0 +1,17 @@
+// offscreen(task): a window a board agent opens goes to a headless display, see gradle/offscreen.gradle.
+apply from: 'gradle/offscreen.gradle'
+
+subprojects {
+    // group and version come from gradle.properties
+
+    plugins.withType(JavaPlugin).configureEach {
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
+        }
+        tasks.withType(Test).configureEach {
+            useJUnitPlatform()
+        }
+    }
+}
+

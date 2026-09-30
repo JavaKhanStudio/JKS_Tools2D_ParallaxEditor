@@ -1,0 +1,30 @@
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        mavenCentral()
+        // develop takes the library's -SNAPSHOT (every push to the library's develop publishes one): only the library
+        // is looked up there.
+        maven {
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+            mavenContent { snapshotsOnly() }
+            content { includeGroup 'io.github.javakhanstudio' }
+        }
+    }
+}
+
+rootProject.name = 'JKS_Tools2D_ParallaxEditor'
+
+include 'editor'
+include 'demo'
+
+// The library, built from a checkout beside this one when there is one (docs/repo-split.md in the library): a change to
+// its core shows in ./gradlew :editor:run with nothing published. Without it (CI, a fresh clone), parallaxVersion
+// comes from Maven Central. -PparallaxFromCentral builds against Central even with the checkout there.
+def library = file('../JKS_Tools2D_ParallaxBackground')
+if (new File(library, 'core/build.gradle').isFile() && !providers.gradleProperty('parallaxFromCentral').isPresent()) {
+    includeBuild(library) {
+        dependencySubstitution {
+            substitute module('io.github.javakhanstudio:parallax-background') using project(':core')
+        }
+    }
+}

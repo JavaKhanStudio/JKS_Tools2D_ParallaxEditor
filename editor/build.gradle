@@ -15,7 +15,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':core')
+    implementation "io.github.javakhanstudio:parallax-background:$parallaxVersion"
     implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
     implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
     implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
@@ -23,6 +23,20 @@ dependencies {
     implementation "com.kotcrab.vis:vis-ui:$visUiVersion"
     implementation platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+
+// ./gradlew :editor:parallaxSource: which library this build took, the sibling checkout's core (settings.gradle's
+// includeBuild) or the jar from Maven Central.
+tasks.register('parallaxSource') {
+    group = 'help'
+    description = 'Prints where parallax-background comes from: the sibling checkout or Maven Central.'
+    def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+    doLast {
+        def lib = root.get().dependencies
+                .collect { it.selected }
+                .find { it.moduleVersion?.name in ['parallax-background', 'core'] }
+        println "parallax-background: ${lib.id.displayName}"
+    }
 }
 
 application {

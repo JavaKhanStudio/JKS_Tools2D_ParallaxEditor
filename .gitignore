@@ -13,8 +13,6 @@ out/
 bin/
 .vscode/
 
-HQ/
-
 # OS / editors
 .DS_Store
 *.swp

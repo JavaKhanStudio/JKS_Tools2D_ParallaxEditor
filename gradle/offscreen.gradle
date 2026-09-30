@@ -1,7 +1,7 @@
 // Offscreen for a board agent: the windows nobody is meant to watch get a display of their own (r118, after
 // ~/Documents/GitHub/onboard's gradle/offscreen.gradle).
 //
-// An agent checking its work runs :editor:run, :demo:run, :demo:lab, :demo:stress or :jme:run, and each opened a
+// An agent checking its work runs :editor:run, :demo:run, :demo:lab or :demo:stress, and each opened a
 // window on Simon's desktop, in front of whatever he was doing. tools/*-shots.sh and tools/driver-probe.sh already ran
 // in cage, a headless wlroots compositor; the Gradle tasks did not.
 //

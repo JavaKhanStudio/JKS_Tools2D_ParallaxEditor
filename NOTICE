@@ -1,6 +1,8 @@
-JKS Tools2D - Parallax Background
+JKS Tools2D - Parallax Editor
 
-This project started as a fork of ParallaxBackground-libgdx
+The editor and demo of JKS Tools2D - Parallax Background
+(https://github.com/JavaKhanStudio/JKS_Tools2D_ParallaxBackground), split out of it in 2026 with their history.
+That library, which the editor builds on, started as a fork of ParallaxBackground-libgdx
 (https://github.com/fooble/ParallaxBackground-libgdx)
 Copyright 2014 Rahul Verma
 Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
