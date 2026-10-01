@@ -4,6 +4,12 @@ apply from: 'gradle/offscreen.gradle'
 subprojects {
     // group and version come from gradle.properties
 
+    // The library's -SNAPSHOT is looked up again on every build. Gradle's default keeps one for 24 h, and CI restores
+    // its Gradle home from the cache: develop built against the snapshot before the library's last push (r48).
+    configurations.configureEach {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+
     plugins.withType(JavaPlugin).configureEach {
         tasks.withType(JavaCompile).configureEach {
             options.encoding = 'UTF-8'
