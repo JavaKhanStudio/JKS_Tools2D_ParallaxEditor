@@ -95,7 +95,7 @@ public final class Utils_Texture
 		moveLayers(oldRegion, newRegion);
 
 		for (ParallaxLayer trashed : trashedValues)
-			if (trashed.getTexRegion().get(0) == oldRegion)
+			if (GVars_Vue_Edition.imageOf(trashed) == oldRegion)
 				trashed.setTexRegion(newRegion);
 
 		Position_Infos info = imageRef.remove(oldRegion);

@@ -3,7 +3,9 @@ package jks.tools2d.parallax.editor.gvars;
 import static jks.tools2d.parallax.editor.vue.Vue_Edition.parallax_Heart;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -155,7 +157,7 @@ public final class GVars_Vue_Edition
 			String regionName = parallaxPage.pageModel.pageList.get(x).regionName;
 			boolean isFromAtlas = outsideTextureReserve.get(regionName) == null;
 
-			for (TextureRegion texture : layer.getTexRegion())
+			for (TextureRegion texture : regionsOf(layer))
 				imageRef.put(texture, new Position_Infos(isFromAtlas, regionName, parallaxPage.pageModel.pageList.get(x).regionPosition));
 
 			addToLinks(layer);
@@ -175,5 +177,32 @@ public final class GVars_Vue_Edition
 	}
 
 	public static void addToLinks(ParallaxLayer layer)
-	{textureLink.computeIfAbsent(layer.getTexRegion().get(0), k -> new ArrayList<>()).add(layer);}
+	{
+		if (layer.drawsImage())
+			textureLink.computeIfAbsent(imageOf(layer), k -> new ArrayList<>()).add(layer);
+	}
+
+	/** The images a layer draws: none for an EMPTY or a PARTICLES layer, whose region list is null. */
+	public static List<TextureRegion> regionsOf(ParallaxLayer layer)
+	{return layer.drawsImage() ? layer.getTexRegion() : Collections.emptyList();}
+
+	/** The image a layer draws, null for an EMPTY or a PARTICLES layer. */
+	public static TextureRegion imageOf(ParallaxLayer layer)
+	{return layer.drawsImage() ? layer.getTexRegion().get(0) : null;}
+
+	/** Puts {@code replacement} in {@code layer}'s place in the stack and in the image links, and selects it. */
+	public static void replaceLayer(ParallaxLayer layer, ParallaxLayer replacement)
+	{
+		List<ParallaxLayer> layers = parallax_Heart.parallaxReader.layers;
+		int index = layers.indexOf(layer);
+		if (index < 0)
+			return;
+
+		layers.set(index, replacement);
+		ArrayList<ParallaxLayer> linked = layer.drawsImage() ? textureLink.get(imageOf(layer)) : null;
+		if (linked != null)
+			linked.remove(layer);
+		addToLinks(replacement);
+		currentlySelectedParallax = replacement;
+	}
 }

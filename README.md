@@ -82,6 +82,14 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
     quickly builds a stack of layers with depth.
   - **Textures:** every setting of the selected layer: its position in the stack, clone, set as default, delete/undo,
     flips, and the sliders. The arrow buttons next to a slider copy that value from the layer in front / behind.
+    **Kind** makes the layer an `IMAGE`, an `EMPTY` slot a game's hook draws (its **Name** is the hook's key), a
+    `PARTICLES` effect (a libGDX `.p` and a Godot `.tscn`, named relative to the atlas's folder, typed or picked with
+    `...`; the libGDX one plays in the preview; **Anchor** `LAYER` or `VIEW`), or a `SHADER` drawing its image through
+    `WAVE` or `FOG` (**Amplitude**, **Wavelength**, **Speed**). Under it, one mark per engine (libGDX, browser,
+    Godot, jME): green it draws the layer, orange it lacks a file or name, red it cannot (jME draws no particles);
+    hover a mark for why. A control only some engines read says which. Making an `EMPTY` or `PARTICLES` layer an
+    image again gives it back its image, or the one selected in **Adding new**. Saving the project elsewhere copies the
+    effect files with the atlas. What each setting means: the library README's layer settings.
   - **Background:** the top and bottom squares: on/off, size, and both colors, with an eyedropper that picks a color
     from the preview (right click cancels it).
 

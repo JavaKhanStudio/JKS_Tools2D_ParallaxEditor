@@ -101,7 +101,7 @@ public final class Utils_LoadingImages
 		if (layers != null)
 			parallax_Heart.parallaxReader.layers.removeAll(layers);
 
-		if (currentlySelectedParallax != null && currentlySelectedParallax.getTexRegion().get(0) == text)
+		if (currentlySelectedParallax != null && GVars_Vue_Edition.imageOf(currentlySelectedParallax) == text)
 			currentlySelectedParallax = null;
 
 		if (!hardClean)
@@ -122,7 +122,7 @@ public final class Utils_LoadingImages
 
 			// Deleted layers waiting for "undo" must not come back with a disposed texture.
 			for (int i = GVars_Vue_Edition.trashedValues.size - 1; i >= 0; i--)
-				if (GVars_Vue_Edition.trashedValues.get(i).getTexRegion().get(0) == text)
+				if (GVars_Vue_Edition.imageOf(GVars_Vue_Edition.trashedValues.get(i)) == text)
 				{
 					GVars_Vue_Edition.trashedValues.removeIndex(i);
 					GVars_Vue_Edition.trashedValuesPosition.removeIndex(i);

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -52,7 +53,7 @@ public class VE_Tab_Texture extends Tab
 	{
 		@Override
 		public float getPrefHeight()
-		{return GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width / 2f;}
+		{return getDrawable() == null ? 0 : GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width / 2f;}
 	};
 
 	/** Sliders of the layer properties, refreshed from the selected layer. */
@@ -65,6 +66,8 @@ public class VE_Tab_Texture extends Tab
 			new LayerSlider("-- Speed ratio Y --", 0.005f, 0.1f, 0.001f, ParallaxLayer::getParallaxSpeedRatioY, ParallaxLayer::setParallaxSpeedRatioY),
 			new LayerSlider("Pad X", 0, 50, 0.1f, ParallaxLayer::getPadX, ParallaxLayer::setPadX),
 			new LayerSlider("Pad Y", 0, 50, 0.05f, ParallaxLayer::getPadY, ParallaxLayer::setPadY));
+
+	private final VE_Tab_Texture_Kind kindSection = new VE_Tab_Texture_Kind(GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width, this::update);
 
 	private boolean updating;
 
@@ -137,6 +140,7 @@ public class VE_Tab_Texture extends Tab
 
 		container.add(new VisLabel("SECTION SELECTED")).pad(6).colspan(totalColspan).row();
 		container.add(showSelect).colspan(totalColspan).row();
+		container.add(kindSection).colspan(totalColspan).pad(4).row();
 		container.add(indexSelectionSpinner).colspan(2);
 		container.add(selectFirst);
 		container.add(selectMiddle);
@@ -245,11 +249,18 @@ public class VE_Tab_Texture extends Tab
 		flipX.setChecked(currentlySelectedParallax.isFlipX());
 		flipY.setChecked(currentlySelectedParallax.isFlipY());
 		mirror.setChecked(currentlySelectedParallax.isMirror());
+		// An EMPTY or PARTICLES layer has no image to flip or mirror: no engine reads these for it.
+		boolean drawsImage = currentlySelectedParallax.drawsImage();
+		flipX.setDisabled(!drawsImage);
+		flipY.setDisabled(!drawsImage);
+		mirror.setDisabled(!drawsImage);
 
 		for (LayerSlider slider : layerSliders)
 			slider.slider.setValue(slider.getter.apply(currentlySelectedParallax));
 
-		showSelect.setDrawable(new TextureRegionDrawable(currentlySelectedParallax.getTexRegion().get(0)));
+		TextureRegion image = GVars_Vue_Edition.imageOf(currentlySelectedParallax);
+		showSelect.setDrawable(image == null ? null : new TextureRegionDrawable(image));
+		kindSection.update();
 
 		updating = false;
 	}

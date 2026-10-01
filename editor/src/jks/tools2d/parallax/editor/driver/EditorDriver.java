@@ -54,7 +54,7 @@ import jks.tools2d.parallax.editor.vue.Vue_Selection;
  * bounds TARGET         "ok x y w h": window pixels, origin at the top left; "preview.view" is the parallax preview
  * click TARGET          presses and releases the left button at the control's center
  * wheel TARGET N        moves the mouse to the control's center and turns the wheel N notches (negative: up)
- * set TARGET VALUE      slider, number slider, text field, check box (true/false), select box, spinner,
+ * set TARGET VALUE      slider, number slider, text field (fires a change, as typing does), check box (true/false), select box, spinner,
  *                       image list (index), list (index or row text), color picker (#rrggbb)
  * open FILE             opens a .plaxpj/.plax/.jplax/.atlas as the start screen would (relative to editor/)
  * shot FILE.png         writes the next rendered frame
@@ -455,7 +455,11 @@ public final class EditorDriver
 		else if (actor instanceof Slider)
 			((Slider) actor).setValue(Float.parseFloat(value));
 		else if (actor instanceof TextField)
+		{
+			// As typing does: setText alone tells no listener.
 			((TextField) actor).setText(value);
+			fireChange(actor);
+		}
 		else if (actor instanceof Button)
 			((Button) actor).setChecked(Boolean.parseBoolean(value));
 		else if (actor instanceof SelectBox)

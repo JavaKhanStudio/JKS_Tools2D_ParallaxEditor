@@ -1,0 +1,31 @@
+# r27: reopen what tools/r27-effect-layers-save-probe.txt wrote, one kind a shot; then a layer made PARTICLES with no
+# file: libGDX, browser and Godot marked missing, jME no.
+sleep 3
+open build/r27/out/proj/r27.plaxpj
+sleep 2
+click tab.textures
+set texture.selection 3
+sleep 1
+shot build/r27/r1-project-empty.png
+set texture.selection 5
+sleep 1
+shot build/r27/r2-project-particles.png
+set texture.selection 6
+sleep 1
+shot build/r27/r3-project-shader.png
+open build/r27/out/proj/r27.plax
+sleep 2
+click tab.textures
+set texture.selection 5
+sleep 1
+shot build/r27/r4-plax-particles.png
+open build/r27/out/proj/r27.jplax
+sleep 2
+click tab.textures
+set texture.selection 6
+sleep 1
+shot build/r27/r5-jplax-shader.png
+set texture.selection 1
+set texture.kind PARTICLES
+sleep 1
+shot build/r27/r6-particles-nofile.png

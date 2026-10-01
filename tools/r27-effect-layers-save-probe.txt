@@ -1,0 +1,30 @@
+# r27: save and export a page with EMPTY, PARTICLES and SHADER layers, into editor/build/r27/out/proj (made first).
+# Then tools/r27-effect-layers-reopen-probe.txt reopens both. Setup as in tools/r27-effect-layers-probe.txt.
+sleep 3
+open build/r27/td/particles/p01.jplax
+sleep 2
+click tab.textures
+set texture.selection 3
+set texture.kind EMPTY
+set texture.name slot
+set texture.selection 5
+set texture.particlesLibgdx snow.p
+set texture.particlesAnchor LAYER
+set texture.selection 6
+set texture.kind SHADER
+set texture.shaderAmplitude 0.6
+set texture.shaderWavelength 2
+set texture.shaderSpeed 1.5
+set options.path build/r27/out/proj
+set options.name r27
+set options.formatJson true
+click options.saveProject
+sleep 1
+shot build/r27/s1-saved.png
+click text:OK
+sleep 1
+click options.export
+sleep 1
+shot build/r27/s2-exported.png
+click text:OK
+sleep 1

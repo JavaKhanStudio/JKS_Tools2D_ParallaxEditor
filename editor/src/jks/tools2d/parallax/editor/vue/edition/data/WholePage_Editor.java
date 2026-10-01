@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import jks.tools2d.parallax.ParallaxLayer;
 import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
+import jks.tools2d.parallax.pages.Enum_LayerKind;
 import jks.tools2d.parallax.pages.Parallax_Model;
 import jks.tools2d.parallax.pages.WholePage_Model;
 
@@ -33,7 +34,8 @@ public class WholePage_Editor extends WholePage_Model
 		for (int i = 0; i < models.size(); )
 		{
 			Parallax_Model model = models.get(i);
-			boolean fromAtlas = i >= inside.size() || inside.get(i);
+			// An EMPTY or PARTICLES layer has no image to look for: core builds it.
+			boolean fromAtlas = i >= inside.size() || inside.get(i) || model.kind == Enum_LayerKind.EMPTY || model.kind == Enum_LayerKind.PARTICLES;
 			ParallaxLayer layer = fromAtlas ? buildLayer(model, atlas, worldWidth) : buildOutsideLayer(model, worldWidth);
 
 			if (layer == null)

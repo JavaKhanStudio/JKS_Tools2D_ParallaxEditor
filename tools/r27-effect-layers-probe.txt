@@ -1,0 +1,47 @@
+# r27: the Textures tab on effect layers (tools/driver-probe.sh < this, shots in editor/build/r27). Needs the library's
+# test pages copied beside, and writes its saves in editor/build/r27/out:
+#   mkdir -p editor/build/r27/td editor/build/r27/out
+#   cp -r ../JKS_Tools2D_ParallaxBackground/core/test-data/{particles,samples,shaders} editor/build/r27/td/
+#   cp ../JKS_Tools2D_ParallaxBackground/engines/godot/tests/shaders/s0*.jplax editor/build/r27/td/shaders/
+sleep 3
+open build/r27/td/particles/p01.jplax
+sleep 2
+click tab.textures
+set texture.selection 5
+sleep 1
+shot build/r27/1-particles.png
+# A .p that is not there: not played (no file at all: tools/r27-effect-layers-reopen-probe.txt).
+set texture.particlesLibgdx nothing.p
+sleep 1
+shot build/r27/2-particles-missing.png
+set texture.particlesLibgdx snow.p
+set texture.particlesGodot snow.tscn
+set texture.particlesAnchor LAYER
+click texture.particlesLibgdx.pick
+sleep 1
+shot build/r27/3-picker.png
+click texture.picker.chooser.cancel
+# EMPTY keeps the layer's name, the key of the game's hook.
+set texture.kind EMPTY
+sleep 1
+shot build/r27/4-empty.png
+set texture.name snowSlot
+sleep 1
+shot build/r27/5-empty.png
+# An IMAGE layer made SHADER, then EMPTY, then back to IMAGE with its image.
+set texture.selection 6
+set texture.kind SHADER
+set texture.shaderEffect WAVE
+set texture.shaderAmplitude 0.6
+set texture.shaderWavelength 2
+set texture.shaderSpeed 1.5
+sleep 2
+shot build/r27/6-shader.png
+set texture.kind EMPTY
+set texture.kind IMAGE
+sleep 1
+shot build/r27/7-image-back.png
+set texture.kind SHADER
+set texture.shaderEffect FOG
+sleep 1
+shot build/r27/8-fog.png

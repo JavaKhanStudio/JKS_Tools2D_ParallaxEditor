@@ -45,6 +45,7 @@ import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
 import jks.tools2d.parallax.editor.vue.edition.data.Project_Data;
 import jks.tools2d.parallax.editor.vue.edition.data.WholePage_Editor;
 import jks.tools2d.parallax.heart.GVars_Serialization;
+import jks.tools2d.parallax.pages.Enum_LayerKind;
 import jks.tools2d.parallax.pages.Page_Model;
 import jks.tools2d.parallax.pages.Utils_Page;
 import jks.tools2d.parallax.pages.WholePage_Model;
@@ -70,7 +71,7 @@ public final class Utils_Saving
 
 		boolean oneOutside = false;
 		for (ParallaxLayer layer : parallax_Heart.parallaxReader.layers)
-			for (TextureRegion region : layer.getTexRegion())
+			for (TextureRegion region : GVars_Vue_Edition.regionsOf(layer))
 			{
 				Position_Infos info = GVars_Vue_Edition.imageRef.get(region);
 				oneOutside |= info != null && !info.fromAtlas;
@@ -238,12 +239,17 @@ public final class Utils_Saving
 		Page_Model outputModel = new Page_Model();
 
 		for (ParallaxLayer layer : parallaxs)
-			for (TextureRegion texRegion : layer.getTexRegion())
+		{
+			// An EMPTY or PARTICLES layer has no image: it is exported as it is.
+			if (!layer.drawsImage())
+				outputModel.pageList.add(Utils_Page.buildFromPage(layer, null, 0));
+			for (TextureRegion texRegion : GVars_Vue_Edition.regionsOf(layer))
 			{
 				Position_Infos info = GVars_Vue_Edition.imageRef.get(texRegion);
 				if (info != null && info.fromAtlas)
 					outputModel.pageList.add(Utils_Page.buildFromPage(layer, info.url, info.position));
 			}
+		}
 
 		fillPage(outputFinalModel, outputModel);
 		return outputFinalModel;
@@ -256,7 +262,13 @@ public final class Utils_Saving
 		Page_Model outputModel = new Page_Model();
 
 		for (ParallaxLayer layer : parallax_Heart.parallaxReader.layers)
-			for (TextureRegion region : layer.getTexRegion())
+		{
+			if (!layer.drawsImage())
+			{
+				outputModel.pageList.add(Utils_Page.buildFromPage(layer, null, 0));
+				outputFinalModel.inside.add(true);
+			}
+			for (TextureRegion region : GVars_Vue_Edition.regionsOf(layer))
 			{
 				Position_Infos info = GVars_Vue_Edition.imageRef.get(region);
 				if (info == null)
@@ -267,6 +279,7 @@ public final class Utils_Saving
 				outputModel.pageList.add(Utils_Page.buildFromPage(layer, info.url, info.position));
 				outputFinalModel.inside.add(info.fromAtlas);
 			}
+		}
 
 		fillPage(outputFinalModel, outputModel);
 		return outputFinalModel;
@@ -305,7 +318,8 @@ public final class Utils_Saving
 	}
 
 	/**
-	 * Copies the atlas and its page images into {@code folder}, keeping their layout. Files already there with the same
+	 * Copies the atlas, its page images and the particle effect files its PARTICLES layers name (they are found beside
+	 * the atlas) into {@code folder}, keeping their layout. Files already there with the same
 	 * content are left alone; a different file of the same name (another project's atlas) stops the save before
 	 * anything is copied.
 	 */
@@ -322,6 +336,10 @@ public final class Utils_Saving
 		FileHandle atlasHandle = new FileHandle(atlas.toFile());
 		for (TextureAtlasData.Page page : new TextureAtlasData(atlasHandle, atlasHandle.parent(), false).getPages())
 			files.add(page.textureFile.file().toPath().toAbsolutePath().normalize());
+		for (ParallaxLayer layer : parallax_Heart.parallaxReader.layers)
+			for (String effect : new String[] { layer.getParticlesLibgdx(), layer.getParticlesGodot() })
+				if (layer.kind == Enum_LayerKind.PARTICLES && Utils_LayerKind.exists(effect))
+					files.add(source.resolve(effect).toAbsolutePath().normalize());
 
 		List<Path> toCopy = new ArrayList<>();
 		StringBuilder conflicts = new StringBuilder();
