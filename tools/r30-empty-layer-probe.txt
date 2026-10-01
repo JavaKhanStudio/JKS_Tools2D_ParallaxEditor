@@ -1,0 +1,32 @@
+# r30: open the library's format-5 page with an EMPTY layer, see it in the Textures tab, save the project and export it,
+# then diff the written .jplax with the source (tools/driver-probe.sh < this, shots and saves in editor/build/r30).
+#   mkdir -p editor/build/r30/td editor/build/r30/out
+#   cp ../JKS_Tools2D_ParallaxBackground/core/test-data/samples/Hiver.* editor/build/r30/td/
+#   cp ../JKS_Tools2D_ParallaxBackground/engines/godot/tests/effects/e01.jplax editor/build/r30/td/
+sleep 3
+open build/r30/td/e01.jplax
+sleep 2
+shot build/r30/1-loaded.png
+click tab.textures
+set texture.selection 3
+sleep 1
+shot build/r30/2-empty-selected.png
+set options.path build/r30/out
+set options.name r30
+set options.formatJson true
+click options.saveProject
+sleep 1
+shot build/r30/3-saved.png
+click text:OK
+sleep 1
+click options.export
+sleep 1
+shot build/r30/4-exported.png
+click text:OK
+sleep 1
+open build/r30/out/r30.plaxpj
+sleep 2
+click tab.textures
+set texture.selection 3
+sleep 1
+shot build/r30/5-reopened.png
