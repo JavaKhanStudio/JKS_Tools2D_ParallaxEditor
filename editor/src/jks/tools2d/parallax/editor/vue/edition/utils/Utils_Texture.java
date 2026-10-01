@@ -10,6 +10,7 @@ import static jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition.trashedValues;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
@@ -21,6 +22,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import jks.tools2d.parallax.ParallaxLayer;
 import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
 import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
+import jks.tools2d.parallax.pages.Enum_LayerKind;
 
 public final class Utils_Texture
 {
@@ -95,8 +97,8 @@ public final class Utils_Texture
 		moveLayers(oldRegion, newRegion);
 
 		for (ParallaxLayer trashed : trashedValues)
-			if (GVars_Vue_Edition.imageOf(trashed) == oldRegion)
-				trashed.setTexRegion(newRegion);
+			if (GVars_Vue_Edition.regionsOf(trashed).contains(oldRegion))
+				swapRegion(trashed, oldRegion, newRegion);
 
 		Position_Infos info = imageRef.remove(oldRegion);
 		if (info != null)
@@ -123,8 +125,22 @@ public final class Utils_Texture
 			return;
 
 		for (ParallaxLayer layer : layers)
-			layer.setTexRegion(to);
+			swapRegion(layer, from, to);
 
 		textureLink.computeIfAbsent(to, k -> new ArrayList<>()).addAll(layers);
+	}
+
+	/** Makes {@code layer} draw {@code to} where it drew {@code from}: a SEQUENCE layer only in the segments that did. */
+	private static void swapRegion(ParallaxLayer layer, TextureRegion from, TextureRegion to)
+	{
+		if (layer.kind != Enum_LayerKind.SEQUENCE)
+		{
+			layer.setTexRegion(to);
+			return;
+		}
+		// As many regions as before, so the cycle stays as it was drawn.
+		List<TextureRegion> segments = new ArrayList<>(layer.getTexRegion());
+		Collections.replaceAll(segments, from, to);
+		layer.setTexRegion(segments);
 	}
 }

@@ -47,6 +47,8 @@ import jks.tools2d.parallax.editor.vue.edition.data.WholePage_Editor;
 import jks.tools2d.parallax.heart.GVars_Serialization;
 import jks.tools2d.parallax.pages.Enum_LayerKind;
 import jks.tools2d.parallax.pages.Page_Model;
+import jks.tools2d.parallax.pages.Parallax_Model;
+import jks.tools2d.parallax.pages.Sequence_Segment;
 import jks.tools2d.parallax.pages.Utils_Page;
 import jks.tools2d.parallax.pages.WholePage_Model;
 import jks.tools2d.parallax.side.SquareBackground;
@@ -232,7 +234,7 @@ public final class Utils_Saving
 		return true;
 	}
 
-	/** The parallax as games read it: only layers whose image is in the atlas. */
+	/** The parallax as games read it: only layers whose images are all in the atlas. */
 	public static WholePage_Model buildWholePageForExport(List<ParallaxLayer> parallaxs)
 	{
 		WholePage_Model outputFinalModel = new WholePage_Model();
@@ -240,15 +242,9 @@ public final class Utils_Saving
 
 		for (ParallaxLayer layer : parallaxs)
 		{
-			// An EMPTY or PARTICLES layer has no image: it is exported as it is.
-			if (!layer.drawsImage())
-				outputModel.pageList.add(Utils_Page.buildFromPage(layer, null, 0));
-			for (TextureRegion texRegion : GVars_Vue_Edition.regionsOf(layer))
-			{
-				Position_Infos info = GVars_Vue_Edition.imageRef.get(texRegion);
-				if (info != null && info.fromAtlas)
-					outputModel.pageList.add(Utils_Page.buildFromPage(layer, info.url, info.position));
-			}
+			Parallax_Model model = modelOf(layer);
+			if (model != null && fromAtlas(layer))
+				outputModel.pageList.add(model);
 		}
 
 		fillPage(outputFinalModel, outputModel);
@@ -263,26 +259,60 @@ public final class Utils_Saving
 
 		for (ParallaxLayer layer : parallax_Heart.parallaxReader.layers)
 		{
-			if (!layer.drawsImage())
-			{
-				outputModel.pageList.add(Utils_Page.buildFromPage(layer, null, 0));
-				outputFinalModel.inside.add(true);
-			}
-			for (TextureRegion region : GVars_Vue_Edition.regionsOf(layer))
-			{
-				Position_Infos info = GVars_Vue_Edition.imageRef.get(region);
-				if (info == null)
-				{
-					Gdx.app.error("Utils_Saving", "No source known for region " + region + ", layer skipped");
-					continue;
-				}
-				outputModel.pageList.add(Utils_Page.buildFromPage(layer, info.url, info.position));
-				outputFinalModel.inside.add(info.fromAtlas);
-			}
+			Parallax_Model model = modelOf(layer);
+			if (model == null)
+				continue;
+			outputModel.pageList.add(model);
+			outputFinalModel.inside.add(fromAtlas(layer));
 		}
 
 		fillPage(outputFinalModel, outputModel);
 		return outputFinalModel;
+	}
+
+	/**
+	 * A layer as the page stores it, its region (a SEQUENCE layer's segments, one each) named from {@link
+	 * GVars_Vue_Edition#imageRef}, which a flatten repoints. Null when the source of an image is not known.
+	 */
+	private static Parallax_Model modelOf(ParallaxLayer layer)
+	{
+		// An EMPTY or PARTICLES layer has no image: it is stored as it is.
+		if (!layer.drawsImage())
+			return Utils_Page.buildFromPage(layer, null, 0);
+
+		List<TextureRegion> regions = GVars_Vue_Edition.regionsOf(layer);
+		for (TextureRegion region : regions)
+			if (GVars_Vue_Edition.imageRef.get(region) == null)
+			{
+				Gdx.app.error("Utils_Saving", "No source known for region " + region + ", layer skipped");
+				return null;
+			}
+
+		Position_Infos first = GVars_Vue_Edition.imageRef.get(regions.get(0));
+		Parallax_Model model = Utils_Page.buildFromPage(layer, first.url, first.position);
+		if (layer.kind == Enum_LayerKind.SEQUENCE)
+		{
+			// One model for the layer, one segment per region: never a layer per segment.
+			model.sequenceSegments.clear();
+			for (int i = 0; i < regions.size(); i++)
+			{
+				Position_Infos info = GVars_Vue_Edition.imageRef.get(regions.get(i));
+				model.sequenceSegments.add(new Sequence_Segment(info.url, info.position, layer.getSequenceSegments().get(i).weight));
+			}
+		}
+		return model;
+	}
+
+	/** Whether every image the layer draws is in the atlas; true for a layer drawing none. */
+	private static boolean fromAtlas(ParallaxLayer layer)
+	{
+		for (TextureRegion region : GVars_Vue_Edition.regionsOf(layer))
+		{
+			Position_Infos info = GVars_Vue_Edition.imageRef.get(region);
+			if (info == null || !info.fromAtlas)
+				return false;
+		}
+		return true;
 	}
 
 	private static void fillPage(WholePage_Model page, Page_Model layers)
@@ -422,8 +452,21 @@ public final class Utils_Saving
 	private static Project_Data withAbsolutePaths(WholePage_Editor page)
 	{
 		for (int i = 0; i < page.pageModel.pageList.size(); i++)
-			if (!page.inside.get(i))
-				page.pageModel.pageList.get(i).regionName = absolute(page.pageModel.pageList.get(i).regionName);
+		{
+			Parallax_Model model = page.pageModel.pageList.get(i);
+			if (page.inside.get(i))
+				continue;
+			if (model.kind != Enum_LayerKind.SEQUENCE)
+			{
+				model.regionName = absolute(model.regionName);
+				continue;
+			}
+			// A SEQUENCE layer may mix atlas regions and loose images: only the loose ones are paths.
+			for (Sequence_Segment segment : model.sequenceSegments)
+				if (GVars_Vue_Edition.outsideTextureReserve.containsKey(segment.regionName))
+					segment.regionName = absolute(segment.regionName);
+			model.regionName = model.sequenceSegments.get(0).regionName;
+		}
 
 		Project_Data copy = new Project_Data();
 		copy.saving = page;

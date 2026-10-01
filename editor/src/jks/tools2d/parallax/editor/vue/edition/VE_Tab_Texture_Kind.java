@@ -35,12 +35,12 @@ import jks.tools2d.parallax.pages.Enum_ShaderEffect;
 
 /**
  * The selected layer's kind and what only that kind has: EMPTY its name, PARTICLES its effect files and anchor, SHADER
- * its effect and numbers. Above them, a mark per engine says whether it draws the layer (docs/effect-layers.md, "Saying
+ * its effect and numbers, SEQUENCE its segments ({@link VE_Tab_Texture_Sequence}). Above them, a mark per engine says whether it draws the layer (docs/effect-layers.md, "Saying
  * what an engine cannot draw"); a control only some engines read says which.
  */
 public class VE_Tab_Texture_Kind extends Table
 {
-	private static final Enum_LayerKind[] EDITABLE_KINDS = { Enum_LayerKind.IMAGE, Enum_LayerKind.EMPTY, Enum_LayerKind.PARTICLES, Enum_LayerKind.SHADER };
+	private static final Enum_LayerKind[] EDITABLE_KINDS = { Enum_LayerKind.IMAGE, Enum_LayerKind.EMPTY, Enum_LayerKind.PARTICLES, Enum_LayerKind.SHADER, Enum_LayerKind.SEQUENCE };
 	private static final Color DRAWN = new Color(0.45f, 0.85f, 0.45f, 1), MISSING = new Color(1, 0.7f, 0.25f, 1), NOT_DRAWN = new Color(1, 0.4f, 0.4f, 1);
 
 	private final SelectBox<Enum_LayerKind> kind = new SelectBox<>(baseSkin);
@@ -61,6 +61,7 @@ public class VE_Tab_Texture_Kind extends Table
 	private final JksNumberSlider shaderSpeed = shaderSlider(-5, 5, 0.05f, ParallaxLayer::setShaderSpeed);
 
 	private final Table engines = new Table(), nameRows = new Table(), particleRows = new Table(), shaderRows = new Table();
+	private final VE_Tab_Texture_Sequence sequenceRows;
 
 	/** Called with the rebuilt layer after the kind changed: the tab refreshes everything else from it. */
 	private final Runnable onKindChanged;
@@ -69,6 +70,7 @@ public class VE_Tab_Texture_Kind extends Table
 	public VE_Tab_Texture_Kind(float width, Runnable onKindChanged)
 	{
 		this.onKindChanged = onKindChanged;
+		sequenceRows = new VE_Tab_Texture_Sequence(width, onKindChanged);
 
 		kind.setName("texture.kind");
 		name.setName("texture.name");
@@ -276,17 +278,7 @@ public class VE_Tab_Texture_Kind extends Table
 		ParallaxLayer layer = currentlySelectedParallax;
 		updating = true;
 
-		if (layer.kind == Enum_LayerKind.SEQUENCE)
-		{
-			Array<Enum_LayerKind> items = new Array<>(EDITABLE_KINDS);
-			items.add(Enum_LayerKind.SEQUENCE);
-			kind.setItems(items);
-		}
-		else if (kind.getItems().size != EDITABLE_KINDS.length)
-			kind.setItems(EDITABLE_KINDS);
 		kind.setSelected(layer.kind);
-		// The editor builds no SEQUENCE layer, and cannot rebuild one as another kind without losing its segments.
-		kind.setDisabled(layer.kind == Enum_LayerKind.SEQUENCE);
 
 		name.setText(layer.getName() == null ? "" : layer.getName());
 		nameTitle.setText(layer.kind == Enum_LayerKind.EMPTY ? "Name: the key of the game's hook" : "Name");
@@ -311,6 +303,11 @@ public class VE_Tab_Texture_Kind extends Table
 		}
 		if (layer.kind == Enum_LayerKind.SHADER)
 			add(shaderRows).colspan(2).row();
+		if (layer.kind == Enum_LayerKind.SEQUENCE)
+		{
+			add(sequenceRows).colspan(2).row();
+			sequenceRows.update();
+		}
 
 		refreshMarks();
 		updating = false;

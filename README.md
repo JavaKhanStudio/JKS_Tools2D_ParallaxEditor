@@ -33,6 +33,7 @@ Requirements: JDK 17 or newer. The Gradle wrapper downloads Gradle itself.
 ```bash
 ./gradlew :editor:run           # the editor, opens on the sample projects in editor/Files
 ./gradlew :demo:run             # the demo: the showcase pages; SPACE variant, ENTER next scene, N tints, LEFT/RIGHT scroll, R resets
+./gradlew :demo:run --args="--page /path/to/page.jplax"   # one exported page instead, its atlas beside it; prints its SEQUENCE layers' cycles
 ./gradlew :demo:stress --args="--layers 400 --repeat xy"   # frame time of generated pages, see ParallaxStress
 ./gradlew :demo:lab             # grade parallax scenes blind, 1-5
 ./gradlew :editor:installDist   # standalone editor in editor/build/install/ParallaxEditor
@@ -84,11 +85,20 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
     flips, and the sliders. The arrow buttons next to a slider copy that value from the layer in front / behind.
     **Kind** makes the layer an `IMAGE`, an `EMPTY` slot a game's hook draws (its **Name** is the hook's key), a
     `PARTICLES` effect (a libGDX `.p` and a Godot `.tscn`, named relative to the atlas's folder, typed or picked with
-    `...`; the libGDX one plays in the preview; **Anchor** `LAYER` or `VIEW`), or a `SHADER` drawing its image through
-    `WAVE` or `FOG` (**Amplitude**, **Wavelength**, **Speed**). Under it, one mark per engine (libGDX, browser,
+    `...`; the libGDX one plays in the preview; **Anchor** `LAYER` or `VIEW`), a `SHADER` drawing its image through
+    `WAVE` or `FOG` (**Amplitude**, **Wavelength**, **Speed**), or a `SEQUENCE` chaining several images. A layer made
+    `SEQUENCE` starts with its image as its one segment and a new seed. Its **Segments** are listed A, B, C... with a
+    weight each (how often it is picked, out of the sum), `^` `v` to move one, `x` to remove one (not the last);
+    **Add the image selected in Adding new** appends a segment, an atlas region or a loose image (export flattens it
+    into the atlas like any other). The first segment sets the layer's height, so moving another first rescales the
+    layer. **Seed** is typed or drawn anew with **Re-roll**; **Cycle length** is how many segments the cycle holds
+    before it repeats, and "repeats every X screens" how wide that cycle is, in screen widths, as the layer scrolls by.
+    The **Cycle** line spells it slot by slot, as the preview draws it: from the page's seed, which is what a game
+    draws when it passes none of its own. Under it, one mark per engine (libGDX, browser,
     Godot, jME): green it draws the layer, orange it lacks a file or name, red it cannot (jME draws no particles);
     hover a mark for why. A control only some engines read says which. Making an `EMPTY` or `PARTICLES` layer an
-    image again gives it back its image, or the one selected in **Adding new**. Saving the project elsewhere copies the
+    image again gives it back its image, or the one selected in **Adding new**; a `SEQUENCE` made another kind keeps
+    its first segment. Saving the project elsewhere copies the
     effect files with the atlas. What each setting means: the library README's layer settings.
   - **Background:** the top and bottom squares: on/off, size, and both colors, with an eyedropper that picks a color
     from the preview (right click cancels it).

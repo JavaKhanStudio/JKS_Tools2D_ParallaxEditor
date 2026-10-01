@@ -5,6 +5,7 @@ import static jks.tools2d.parallax.editor.vue.Vue_Edition.parallax_Heart;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import com.badlogic.gdx.Gdx;
@@ -25,6 +26,9 @@ import jks.tools2d.parallax.editor.vue.edition.data.Project_Data;
 import jks.tools2d.parallax.editor.vue.edition.data.Project_Infos;
 import jks.tools2d.parallax.editor.vue.edition.utils.Utils_Texture;
 import jks.tools2d.parallax.editor.vue.edition.utils.WatchedImage;
+import jks.tools2d.parallax.pages.Enum_LayerKind;
+import jks.tools2d.parallax.pages.Parallax_Model;
+import jks.tools2d.parallax.pages.Sequence_Segment;
 import jks.tools2d.parallax.pages.WholePage_Model;
 
 /** State of the edition view (one project open at a time). */
@@ -154,11 +158,21 @@ public final class GVars_Vue_Edition
 		for (int x = 0; x < parallaxPage.preloadValue.size(); x++)
 		{
 			ParallaxLayer layer = parallaxPage.preloadValue.get(x);
-			String regionName = parallaxPage.pageModel.pageList.get(x).regionName;
-			boolean isFromAtlas = outsideTextureReserve.get(regionName) == null;
+			Parallax_Model model = parallaxPage.pageModel.pageList.get(x);
 
-			for (TextureRegion texture : regionsOf(layer))
-				imageRef.put(texture, new Position_Infos(isFromAtlas, regionName, parallaxPage.pageModel.pageList.get(x).regionPosition));
+			if (layer.kind == Enum_LayerKind.SEQUENCE)
+			{
+				// One region per segment, each named by its own segment, not by the layer.
+				for (int i = 0; i < model.sequenceSegments.size(); i++)
+				{
+					Sequence_Segment segment = model.sequenceSegments.get(i);
+					imageRef.put(layer.getTexRegion().get(i), new Position_Infos(outsideTextureReserve.get(segment.regionName) == null,
+							segment.regionName, segment.regionPosition));
+				}
+			}
+			else
+				for (TextureRegion texture : regionsOf(layer))
+					imageRef.put(texture, new Position_Infos(outsideTextureReserve.get(model.regionName) == null, model.regionName, model.regionPosition));
 
 			addToLinks(layer);
 		}
@@ -176,13 +190,27 @@ public final class GVars_Vue_Edition
 		VE_Tab_TextureList_Adding.imageList.setItems(allImage.toArray(new TextureRegion[0]));
 	}
 
+	/** Links {@code layer} to every image it draws: a SEQUENCE layer to each of its segments'. */
 	public static void addToLinks(ParallaxLayer layer)
 	{
-		if (layer.drawsImage())
-			textureLink.computeIfAbsent(imageOf(layer), k -> new ArrayList<>()).add(layer);
+		for (TextureRegion region : new HashSet<>(regionsOf(layer)))
+			textureLink.computeIfAbsent(region, k -> new ArrayList<>()).add(layer);
 	}
 
-	/** The images a layer draws: none for an EMPTY or a PARTICLES layer, whose region list is null. */
+	public static void removeFromLinks(ParallaxLayer layer)
+	{
+		for (TextureRegion region : regionsOf(layer))
+		{
+			ArrayList<ParallaxLayer> linked = textureLink.get(region);
+			if (linked != null)
+				linked.remove(layer);
+		}
+	}
+
+	/**
+	 * The images a layer draws: a SEQUENCE layer's segments in order, none for an EMPTY or a PARTICLES layer, whose
+	 * region list is null.
+	 */
 	public static List<TextureRegion> regionsOf(ParallaxLayer layer)
 	{return layer.drawsImage() ? layer.getTexRegion() : Collections.emptyList();}
 
@@ -199,9 +227,7 @@ public final class GVars_Vue_Edition
 			return;
 
 		layers.set(index, replacement);
-		ArrayList<ParallaxLayer> linked = layer.drawsImage() ? textureLink.get(imageOf(layer)) : null;
-		if (linked != null)
-			linked.remove(layer);
+		removeFromLinks(layer);
 		addToLinks(replacement);
 		currentlySelectedParallax = replacement;
 	}

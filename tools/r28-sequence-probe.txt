@@ -1,0 +1,69 @@
+# r28: a SEQUENCE layer in the Textures tab (tools/driver-probe.sh < this, shots in editor/build/r28). Needs the
+# library's sequence test atlas and page copied beside, and writes its saves in editor/build/r28/out/proj:
+#   mkdir -p editor/build/r28/td editor/build/r28/out/proj
+#   cp -r ../JKS_Tools2D_ParallaxBackground/core/test-data/{sequence,samples} editor/build/r28/td/
+#   cp ../JKS_Tools2D_ParallaxBackground/engines/godot/tests/sequence/q01.jplax editor/build/r28/td/sequence/
+# Then tools/r28-sequence-reopen-probe.txt reopens what it saved.
+sleep 3
+open build/r28/td/sequence/q01.jplax
+sleep 2
+click tab.textures
+# A sequence the page holds: its five segments, weights, seed 42, 16 slots.
+set texture.selection 8
+sleep 1
+shot build/r28/1-loaded.png
+# An image layer made SEQUENCE: its image is the first segment. Brought down and shrunk to be seen whole.
+set texture.selection 7
+set texture.kind SEQUENCE
+set texture.sizeRatio 0.4
+set texture.decalY 25
+sleep 1
+shot build/r28/2-made-sequence.png
+# The image list (Add texture tab): parallax4 x4, then stone 4, bridge 5, river 6, tower 7, bush 8.
+click tab.addTexture
+set adding.imageList 4
+click tab.textures
+click texture.sequence.add
+click tab.addTexture
+set adding.imageList 5
+click tab.textures
+click texture.sequence.add
+click tab.addTexture
+set adding.imageList 6
+click tab.textures
+click texture.sequence.add
+click tab.addTexture
+set adding.imageList 7
+click tab.textures
+click texture.sequence.add
+sleep 1
+shot build/r28/3-added.png
+# Drop parallax4, move river first, weigh them.
+click texture.sequence.segment.0.remove
+click texture.sequence.segment.2.up
+click texture.sequence.segment.1.up
+set texture.sequence.segment.0.weight 3
+set texture.sequence.segment.1.weight 4
+set texture.sequence.segment.2.weight 2
+set texture.sequence.segment.3.weight 1
+click texture.sequence.reroll
+set texture.sequence.length 24
+set texture.sequence.seed 7
+sleep 1
+shot build/r28/4-edited.png
+set options.path build/r28/out/proj
+set options.name r28
+set options.formatJson true
+click options.saveProject
+sleep 1
+click text:OK
+sleep 1
+click options.export
+sleep 1
+shot build/r28/5-exported.png
+click text:OK
+sleep 1
+# Made IMAGE again, the layer keeps its first segment (river).
+set texture.kind IMAGE
+sleep 1
+shot build/r28/6-image-again.png

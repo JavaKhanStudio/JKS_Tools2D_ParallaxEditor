@@ -1,6 +1,7 @@
 package jks.tools2d.parallax.demo;
 
 import java.io.File;
+import java.util.List;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -18,8 +19,10 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import org.lwjgl.glfw.GLFW;
 
+import jks.tools2d.parallax.ParallaxLayer;
 import jks.tools2d.parallax.heart.Gvars_Parallax;
 import jks.tools2d.parallax.heart.Parallax_Heart;
+import jks.tools2d.parallax.pages.Enum_LayerKind;
 import jks.tools2d.parallax.pages.Utils_Page_Json;
 import jks.tools2d.parallax.pages.WholePage_Model;
 
@@ -27,7 +30,8 @@ import jks.tools2d.parallax.pages.WholePage_Model;
  * Game-side usage of the library: the showcase pages (demo/showcase, r108), the ones graded best in demo/lab, loaded
  * from JSON and cross-faded on demand. A scene holds variants of one place (day and sunset, winter and spring): SPACE
  * fades between them, ENTER into the next scene. The build puts the pages and their atlases on the classpath, see
- * demo/build.gradle.
+ * demo/build.gradle. {@code --page FILE} plays one page instead, a .jplax the editor exported (its atlas beside it), and
+ * prints the cycle of each of its SEQUENCE layers as the editor's Textures tab spells it.
  */
 public class ParallaxDemo extends ApplicationAdapter
 {
@@ -36,11 +40,16 @@ public class ParallaxDemo extends ApplicationAdapter
 	private static final Color NIGHT_TINT = new Color(0.45f, 0.5f, 0.85f, 1);
 
 	/** Scene name, then its pages (demo/showcase/&lt;page&gt;.jplax). Round 2 of demo/lab may change who is here. */
-	private static final String[][] SCENES = {
+	private static final String[][] SHOWCASE = {
 			{ "Calm", "calm-day", "calm-sunset" },
 			{ "Seasons", "winter", "spring" },
 			{ "One night", "one-night" },
 			{ "Purple fairy", "purple-fairy" } };
+
+	/** The scenes played: {@link #SHOWCASE}, or the one page of --page. */
+	private final String[][] scenes;
+	/** --page FILE: the page played, or null. */
+	private final File pageFile;
 
 	private Parallax_Heart heart;
 	private WholePage_Model[][] pages;
@@ -53,8 +62,12 @@ public class ParallaxDemo extends ApplicationAdapter
 	/** --shots DIR: presses the keys itself and writes stills instead of opening for play, see tools/demo-shots.sh. */
 	private final File shotsDir;
 
-	public ParallaxDemo(File shotsDir)
-	{this.shotsDir = shotsDir;}
+	public ParallaxDemo(File shotsDir, File pageFile)
+	{
+		this.shotsDir = shotsDir;
+		this.pageFile = pageFile;
+		this.scenes = pageFile == null ? SHOWCASE : new String[][] { { pageFile.getName(), pageFile.getName() } };
+	}
 
 	/**
 	 * Keeps the window on X11 (Xwayland on a Wayland desktop), as before LWJGL 3.3.6: its GLFW 3.4 opens a native
@@ -69,30 +82,41 @@ public class ParallaxDemo extends ApplicationAdapter
 
 	public static void main(String[] args)
 	{
-		File shots = args.length == 2 && "--shots".equals(args[0]) ? new File(args[1]) : null;
+		File shots = null, page = null;
+		for (int i = 0; i + 1 < args.length; i += 2)
+			if ("--shots".equals(args[i]))
+				shots = new File(args[i + 1]);
+			else if ("--page".equals(args[i]))
+				page = new File(args[i + 1]).getAbsoluteFile();
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setTitle("Parallax demo");
 		config.setWindowIcon("parallaxIcon.png");
 		config.setWindowedMode(1280, 720);
 		config.useVsync(true);
 		keepX11();
-		new Lwjgl3Application(new ParallaxDemo(shots), config);
+		new Lwjgl3Application(new ParallaxDemo(shots, page), config);
 	}
 
 	@Override
 	public void create()
 	{
-		pages = new WholePage_Model[SCENES.length][];
-		for (int s = 0; s < SCENES.length; s++)
+		pages = new WholePage_Model[scenes.length][];
+		for (int s = 0; s < scenes.length; s++)
 		{
-			pages[s] = new WholePage_Model[SCENES[s].length - 1];
+			pages[s] = new WholePage_Model[scenes[s].length - 1];
 			for (int v = 0; v < pages[s].length; v++)
-				pages[s][v] = Utils_Page_Json.loadPage("showcase/" + SCENES[s][v + 1] + ".jplax");
+				pages[s][v] = pageFile != null ? Utils_Page_Json.loadPage(new FileHandle(pageFile))
+						: Utils_Page_Json.loadPage("showcase/" + scenes[s][v + 1] + ".jplax");
 		}
 
 		heart = new Parallax_Heart();
+		// A page given by its file finds its atlas beside it.
+		if (pageFile != null)
+			heart.relativePath = pageFile.getParent();
 		heart.setPage(pages[0][0]);
 		heart.screenSpeedConstantX = 60;
+		if (pageFile != null)
+			printCycles();
 
 		hudBatch = new SpriteBatch();
 		font = new BitmapFont();
@@ -158,7 +182,7 @@ public class ParallaxDemo extends ApplicationAdapter
 		ScreenUtils.clear(Color.BLACK);
 		heart.render();
 
-		String[] names = SCENES[scene];
+		String[] names = scenes[scene];
 		String where = names[0] + (pages[scene].length > 1 ? " (" + names[variant + 1] + ")" : "");
 		String hud = where + "   SPACE: " + (pages[scene].length > 1 ? "variant" : "-") + "   ENTER: next scene   N: night tint   LEFT/RIGHT: scroll   R: reset   "
 				+ Gdx.graphics.getFramesPerSecond() + " fps";
@@ -176,7 +200,7 @@ public class ParallaxDemo extends ApplicationAdapter
 	{
 		shotsDir.mkdirs();
 		// Seconds into the run, key pressed then (0 = none), still name.
-		Object[][] script = {
+		Object[][] script = pageFile != null ? new Object[][] { { 0f, 0, "page" }, { 5f, 0, "page-5s" } } : new Object[][] {
 				{ 5f, 0, "calm-day" },
 				{ 5f, Keys.SPACE, "" }, { 6.5f, 0, "calm-fading" }, { 9f, 0, "calm-sunset" },
 				{ 9f, Keys.ENTER, "" }, { 13f, 0, "winter" },
@@ -198,6 +222,22 @@ public class ParallaxDemo extends ApplicationAdapter
 				PixmapIO.writePNG(new FileHandle(new File(shotsDir, line[2] + ".png")), pixmap, 6, true);
 				pixmap.dispose();
 			}
+		}
+	}
+
+	/** Each SEQUENCE layer's cycle, slot by slot, A for its first segment: what the editor shows under "Cycle". */
+	private void printCycles()
+	{
+		List<ParallaxLayer> layers = heart.parallaxReader.layers;
+		for (int i = 0; i < layers.size(); i++)
+		{
+			ParallaxLayer layer = layers.get(i);
+			if (layer.kind != Enum_LayerKind.SEQUENCE)
+				continue;
+			StringBuilder cycle = new StringBuilder();
+			for (int slot = 0; slot < layer.getSequenceLength(); slot++)
+				cycle.append(layer.getCycleSegment(slot) < 26 ? String.valueOf((char) ('A' + layer.getCycleSegment(slot))) : "(" + layer.getCycleSegment(slot) + ")");
+			System.out.println("layer " + i + " SEQUENCE seed " + layer.getDrawnSeed() + " cycle " + cycle);
 		}
 	}
 

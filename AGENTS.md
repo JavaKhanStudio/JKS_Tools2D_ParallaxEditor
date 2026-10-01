@@ -8,7 +8,7 @@ and in the library's README; branches and releases in RELEASING.md.
 | Module    | What it is | Java | Run / check |
 |-----------|------------|------|-------------|
 | `editor/` | The desktop tool that builds pages and exports `.plax`. Sources `src/` and `mains/`. | 17 | `./gradlew :editor:run` (workingDir `editor/`, finds `editor/Files`) |
-| `demo/`   | A small game using the library. | 17 | `./gradlew :demo:run` (workingDir `demo/assets`): the `demo/showcase` pages, SPACE variant, ENTER scene, N tint, LEFT/RIGHT scroll, R reset; `tools/demo-shots.sh` plays it off screen. `./gradlew :demo:lab` (workingDir the root): the grading lab, `demo/lab`. `./gradlew :demo:stress`: frame time of generated pages |
+| `demo/`   | A small game using the library. | 17 | `./gradlew :demo:run` (workingDir `demo/assets`): the `demo/showcase` pages (`--args="--page FILE.jplax"`: one exported page, its SEQUENCE cycles printed), SPACE variant, ENTER scene, N tint, LEFT/RIGHT scroll, R reset; `tools/demo-shots.sh` plays it off screen. `./gradlew :demo:lab` (workingDir the root): the grading lab, `demo/lab`. `./gradlew :demo:stress`: frame time of generated pages |
 
 - The library (`core`, the file formats, the Godot and jME readers) is
   [JKS_Tools2D_ParallaxBackground](https://github.com/JavaKhanStudio/JKS_Tools2D_ParallaxBackground), a repository and a

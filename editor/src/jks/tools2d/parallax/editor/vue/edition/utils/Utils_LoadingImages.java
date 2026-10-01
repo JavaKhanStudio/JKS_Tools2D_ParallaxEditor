@@ -99,9 +99,14 @@ public final class Utils_LoadingImages
 	{
 		ArrayList<ParallaxLayer> layers = textureLink.remove(text);
 		if (layers != null)
+		{
 			parallax_Heart.parallaxReader.layers.removeAll(layers);
+			// A SEQUENCE layer is linked to its other segments' images too.
+			for (ParallaxLayer layer : layers)
+				GVars_Vue_Edition.removeFromLinks(layer);
+		}
 
-		if (currentlySelectedParallax != null && GVars_Vue_Edition.imageOf(currentlySelectedParallax) == text)
+		if (currentlySelectedParallax != null && GVars_Vue_Edition.regionsOf(currentlySelectedParallax).contains(text))
 			currentlySelectedParallax = null;
 
 		if (!hardClean)
@@ -122,7 +127,7 @@ public final class Utils_LoadingImages
 
 			// Deleted layers waiting for "undo" must not come back with a disposed texture.
 			for (int i = GVars_Vue_Edition.trashedValues.size - 1; i >= 0; i--)
-				if (GVars_Vue_Edition.imageOf(GVars_Vue_Edition.trashedValues.get(i)) == text)
+				if (GVars_Vue_Edition.regionsOf(GVars_Vue_Edition.trashedValues.get(i)).contains(text))
 				{
 					GVars_Vue_Edition.trashedValues.removeIndex(i);
 					GVars_Vue_Edition.trashedValuesPosition.removeIndex(i);

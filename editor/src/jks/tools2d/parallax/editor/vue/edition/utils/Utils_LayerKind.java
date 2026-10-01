@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.WeakHashMap;
 
 import com.badlogic.gdx.files.FileHandle;
@@ -21,9 +22,11 @@ import jks.tools2d.parallax.editor.gvars.EditorPaths;
 import jks.tools2d.parallax.editor.gvars.GVars_UI;
 import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
 import jks.tools2d.parallax.editor.vue.edition.VE_Tab_TextureList_Adding;
+import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
 import jks.tools2d.parallax.heart.Gvars_Parallax;
 import jks.tools2d.parallax.pages.Enum_LayerKind;
 import jks.tools2d.parallax.pages.Parallax_Model;
+import jks.tools2d.parallax.pages.Sequence_Segment;
 import jks.tools2d.parallax.pages.Utils_Page;
 
 /**
@@ -34,13 +37,17 @@ public final class Utils_LayerKind
 {
 	/** The image a layer drew before it became EMPTY or PARTICLES, given back if it draws one again. */
 	private static final Map<ParallaxLayer, TextureRegion> imageBefore = new WeakHashMap<>();
+	/** A new SEQUENCE layer's cycle length: the format's default. */
+	public static final int DEFAULT_SEQUENCE_LENGTH = new Parallax_Model().sequenceLength;
+	private static final Random SEEDS = new Random();
 
 	private Utils_LayerKind()
 	{}
 
 	/**
 	 * A new layer of {@code kind} with every setting of {@code layer}: its kind is final in core. Null when {@code kind}
-	 * draws an image and none is at hand (said in a dialog), and for SEQUENCE, which the editor does not build.
+	 * draws an image and none is at hand (said in a dialog). A layer made SEQUENCE chains its one image, at weight 1,
+	 * from a new seed; one made something else from a SEQUENCE keeps its first segment.
 	 */
 	public static ParallaxLayer withKind(ParallaxLayer layer, Enum_LayerKind kind)
 	{
@@ -59,6 +66,7 @@ public final class Utils_LayerKind
 				break;
 			case IMAGE:
 			case SHADER:
+			case SEQUENCE:
 				if (image == null || !GVars_Vue_Edition.allImage.contains(image))
 					image = VE_Tab_TextureList_Adding.imageList == null ? null : VE_Tab_TextureList_Adding.imageList.getSelected();
 				if (image == null)
@@ -69,8 +77,18 @@ public final class Utils_LayerKind
 				}
 				List<TextureRegion> regions = new ArrayList<>(1);
 				regions.add(image);
-				rebuilt = new ParallaxLayer(kind, regions, true, Gvars_Parallax.getWorldWidth(),
-						model.parallaxScalingSpeedX, model.parallaxScalingSpeedY, model.sizeRatio);
+				if (kind == Enum_LayerKind.SEQUENCE)
+				{
+					model.sequenceSegments.clear();
+					model.sequenceSegments.add(new Sequence_Segment(null, 0, 1));
+					model.sequenceSeed = newSeed();
+					model.sequenceLength = DEFAULT_SEQUENCE_LENGTH;
+					rebuilt = ParallaxLayer.sequence(regions, new int[] { 1 }, model.sequenceSeed, model.sequenceLength,
+							Gvars_Parallax.getWorldWidth(), model.sizeRatio);
+				}
+				else
+					rebuilt = new ParallaxLayer(kind, regions, true, Gvars_Parallax.getWorldWidth(),
+							model.parallaxScalingSpeedX, model.parallaxScalingSpeedY, model.sizeRatio);
 				rebuilt.setUseOriginalSize(parallax_Heart.currentPage.useOriginalSize);
 				break;
 			default:
@@ -84,6 +102,31 @@ public final class Utils_LayerKind
 			loadLibgdxEffect(rebuilt);
 		return rebuilt;
 	}
+
+	/**
+	 * A copy of the SEQUENCE layer {@code layer} chaining {@code regions}, one weight each, with every other setting of
+	 * it: core's cycle is sized for its regions, so a segment added, removed or moved means a new layer.
+	 */
+	public static ParallaxLayer withSegments(ParallaxLayer layer, List<TextureRegion> regions, int[] weights)
+	{
+		Parallax_Model model = Utils_Page.buildFromPage(layer, null, 0);
+		model.sequenceSegments.clear();
+		for (int i = 0; i < regions.size(); i++)
+		{
+			Position_Infos info = GVars_Vue_Edition.imageRef.get(regions.get(i));
+			model.sequenceSegments.add(new Sequence_Segment(info == null ? null : info.url, info == null ? 0 : info.position, weights[i]));
+		}
+
+		ParallaxLayer rebuilt = ParallaxLayer.sequence(new ArrayList<>(regions), weights, model.sequenceSeed, model.sequenceLength,
+				Gvars_Parallax.getWorldWidth(), model.sizeRatio);
+		rebuilt.setUseOriginalSize(layer.isUseOriginalSize());
+		rebuilt.setUpEverything(model);
+		return rebuilt;
+	}
+
+	/** A seed for a new cycle: any int, 0 included (core starts xorshift elsewhere for it). */
+	public static int newSeed()
+	{return SEEDS.nextInt();}
 
 	/** The folder a page's effect files are named from: its atlas's. Null for a page without an atlas. */
 	public static Path effectFolder()
