@@ -341,3 +341,22 @@ line numbers are commit 2a7e3f6 (`git show 2a7e3f6:<path>` shows the original), 
 anything you fix that it still lists as broken MOVES into its §10 then/now table rather
 than being deleted.
 """
+
+# #docs WRITTEN BY THE SPLIT (r1249)
+[tags.docs]
+label = "Docs & board words"
+description = "README.md, CLAUDE.md, AGENTS.md; the packs, lexicon and doctrine"
+color = "#9fa8ff"
+sort = 110
+context = """
+The board's own upkeep lands here: the Maintenance tickets for Context packs,
+Lexicon, Tag vocabulary and Doctrine (atelier r853).
+.atelier/packs.toml holds one [tags.<slug>] per tag. A pack line names a file or
+a command; one that does not gets cut. `atelier --project parallax-editor doctor
+context_packs` lists paths that moved.
+Lexicon: `atelier --project parallax-editor term list`; a new word:
+  atelier --project parallax-editor term add "<word>" --short "<one line>" --tags <tag>
+.atelier/doctrine.md holds Simon's lines once he approves them. A change to one
+is a doubt (`atelier ask`), never an edit.
+The docs: README.md, CLAUDE.md, AGENTS.md.
+"""
