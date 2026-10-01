@@ -329,6 +329,23 @@ public class FC_List extends FileChooser
 			add(cancelButton).fill().space(style.space);
 	}
 
+	/**
+	 * Also names the widgets inside, {@code name.path}, {@code .list}, {@code .select}, {@code .open}, {@code .cancel},
+	 * {@code .back} and {@code .up}: the editor's driver finds controls by name.
+	 */
+	@Override
+	public void setName(String name)
+	{
+		super.setName(name);
+		pathField.setName(name + ".path");
+		currentlySelected.setName(name + ".list");
+		chooseButton.setName(name + ".select");
+		openButton.setName(name + ".open");
+		cancelButton.setName(name + ".cancel");
+		backButton.setName(name + ".back");
+		parentButton.setName(name + ".up");
+	}
+
 	/** refreshes the {@link #currentlySelected} */
 	public void refresh()
 	{

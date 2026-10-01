@@ -1,0 +1,17 @@
+# r44: the start screen chooser's widgets by name (tools/driver-probe.sh < this, shots in editor/build/r44).
+sleep 3
+list
+set selection.chooser.list Demos/
+click selection.chooser.select
+sleep 1
+shot build/r44/1-demos.png
+click selection.chooser.back
+set selection.chooser.list 2
+click selection.chooser.select
+sleep 1
+shot build/r44/2-transfer.png
+click selection.chooser.up
+sleep 1
+set selection.chooser.list nope/
+set selection.chooser.list 99
+set selection.chooser.path /tmp

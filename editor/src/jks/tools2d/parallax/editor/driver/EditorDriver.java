@@ -31,6 +31,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.Layout;
+import com.badlogic.gdx.utils.Array;
 import com.kotcrab.vis.ui.widget.color.BasicColorPicker;
 import com.kotcrab.vis.ui.widget.spinner.IntSpinnerModel;
 import com.kotcrab.vis.ui.widget.spinner.Spinner;
@@ -54,7 +55,7 @@ import jks.tools2d.parallax.editor.vue.Vue_Selection;
  * click TARGET          presses and releases the left button at the control's center
  * wheel TARGET N        moves the mouse to the control's center and turns the wheel N notches (negative: up)
  * set TARGET VALUE      slider, number slider, text field, check box (true/false), select box, spinner,
- *                       image list (index), color picker (#rrggbb)
+ *                       image list (index), list (index or row text), color picker (#rrggbb)
  * open FILE             opens a .plaxpj/.plax/.jplax/.atlas as the start screen would (relative to editor/)
  * shot FILE.png         writes the next rendered frame
  * fps                   "ok FPS period AVG MAX work AVG MAX": over the last 120 frames, the ms from one frame to the
@@ -472,6 +473,8 @@ public final class EditorDriver
 				return "err no item " + index + " (" + list.getItems().size + " items)";
 			list.getSelection().choose(list.getItems().get(index));
 		}
+		else if (actor instanceof com.badlogic.gdx.scenes.scene2d.ui.List)
+			return selectItem((com.badlogic.gdx.scenes.scene2d.ui.List<?>) actor, value);
 		else if (actor instanceof BasicColorPicker)
 		{
 			// getColor() is the actor's tint, not the picked color: hand the listener the parsed one.
@@ -492,6 +495,27 @@ public final class EditorDriver
 			if (String.valueOf(item).equals(value))
 			{
 				box.setSelected(item);
+				return "ok";
+			}
+		return "err no item " + value;
+	}
+
+	/** Selects a list's row by its index, or by its text when the value is not a number. */
+	private static <T> String selectItem(com.badlogic.gdx.scenes.scene2d.ui.List<T> list, String value)
+	{
+		Array<T> items = list.getItems();
+		if (value.matches("\\d+"))
+		{
+			int index = Integer.parseInt(value);
+			if (index >= items.size)
+				return "err no item " + index + " (" + items.size + " items)";
+			list.setSelectedIndex(index);
+			return "ok";
+		}
+		for (T item : items)
+			if (String.valueOf(item).equals(value))
+			{
+				list.setSelected(item);
 				return "ok";
 			}
 		return "err no item " + value;
