@@ -15,14 +15,11 @@ public abstract class FileChooser extends Table
 	{
 		@Override
 		public boolean accept(File file) 
-		{return (showHidden || !file.isHidden()) && (fileFilter == null || fileFilter.accept(file));}
+		{return !file.isHidden() && (fileFilter == null || fileFilter.accept(file));}
 	};
 
 	/** a personal filter to determine if certain files should be shown */
 	private FileFilter fileFilter;
-
-	/** if hidden files should be shown */
-	private boolean showHidden = false;
 
 	/** if directories can be chosen */
 	private boolean directoriesChoosable;
@@ -40,17 +37,8 @@ public abstract class FileChooser extends Table
 	public void setListener(FileChooser_Listener listener) 
 	{this.listener = listener;}
 
-	public FileFilter getFileFilter() 
-	{return fileFilter;}
-
 	public void setFileFilter(FileFilter fileFilter) 
 	{this.fileFilter = fileFilter;}
-
-	public boolean isShowHidden() 
-	{return showHidden;}
-
-	public void setShowHidden(boolean showHidden) 
-	{this.showHidden = showHidden;}
 
 	public boolean isDirectoriesChoosable()
 	{return directoriesChoosable;}

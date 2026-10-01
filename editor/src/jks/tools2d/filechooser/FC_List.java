@@ -36,13 +36,13 @@ import jks.tools2d.libgdxutils.Utils_Scene2D;
 public class FC_List extends FileChooser
 {
 
-	private Style style;
+	private final Style style;
 
 	/**
 	 * the directories that have been visited previously, for the
 	 * {@link #backButton}
 	 */
-	private Array<FileHandle> fileHistory = new Array<>();
+	private final Array<FileHandle> fileHistory = new Array<>();
 
 	private FileHandle directory = Gdx.files.absolute(Gdx.files.getExternalStoragePath());
 	{
@@ -396,128 +396,6 @@ public class FC_List extends FileChooser
 			Gdx.app.error(FC_List.class.getSimpleName(), " cannot read " + dir);
 	}
 
-	/** @return the {@link #backButton} */
-	public Button getBackButton()
-	{
-		return backButton;
-	}
-
-	/** @param backButton the {@link #backButton} to set */
-	public void setBackButton(Button backButton)
-	{
-		backButton.addListener(backButtonListener);
-		getCell(this.backButton).setActor(this.backButton = backButton);
-	}
-
-	/** @return the {@link #cancelButton} */
-	public Button getCancelButton()
-	{
-		return cancelButton;
-	}
-
-	/** @param cancelButton the {@link #cancelButton} to set */
-	public void setCancelButton(Button cancelButton)
-	{
-		cancelButton.addListener(cancelButtonListener);
-		if (cancelable)
-			getCell(this.cancelButton).setActor(cancelButton);
-		this.cancelButton = cancelButton;
-	}
-
-	/** @return the {@link #chooseButton} */
-	public Button getChooseButton()
-	{
-		return chooseButton;
-	}
-
-	/** @param chooseButton the {@link #chooseButton} to set */
-	public void setChooseButton(Button chooseButton)
-	{
-		chooseButton.addListener(selectButtonListener);
-		getCell(this.chooseButton).setActor(this.chooseButton = chooseButton);
-	}
-
-	/** @return the {@link #currentlySelected} */
-	public List<String> getContents()
-	{
-		return currentlySelected;
-	}
-
-	/** @param contents the {@link #currentlySelected} to set */
-	public void setContents(List<String> contents)
-	{
-		getCell(this.currentlySelected).setActor(this.currentlySelected = contents);
-	}
-
-	/** @return the {@link #contentsPane} */
-	public ScrollPane getContentsPane()
-	{
-		return contentsPane;
-	}
-
-	/** @param contentsPane the {@link #contentsPane} to set */
-	public void setContentsPane(ScrollPane contentsPane)
-	{
-		getCell(this.contentsPane).setActor(this.contentsPane = contentsPane);
-	}
-
-	/** @return the {@link #directory} */
-	public FileHandle getDirectory()
-	{
-		return directory;
-	}
-
-	/** @return the {@link #fileHistory} */
-	public Array<FileHandle> getFileHistory()
-	{
-		return fileHistory;
-	}
-
-	/** @param fileHistory the {@link #fileHistory} to set */
-	public void setFileHistory(Array<FileHandle> fileHistory)
-	{
-		this.fileHistory = fileHistory;
-	}
-
-	/** @return the {@link #openButton} */
-	public Button getOpenButton()
-	{
-		return openButton;
-	}
-
-	/** @param openButton the {@link #openButton} to set */
-	public void setOpenButton(Button openButton)
-	{
-		openButton.addListener(openButtonListener);
-		getCell(this.openButton).setActor(this.openButton = openButton);
-	}
-
-	/** @return the {@link #parentButton} */
-	public Button getParentButton()
-	{
-		return parentButton;
-	}
-
-	/** @param parentButton the {@link #parentButton} to set */
-	public void setParentButton(Button parentButton)
-	{
-		parentButton.addListener(parentButtonListener);
-		getCell(this.parentButton).setActor(this.parentButton = parentButton);
-	}
-
-	/** @return the {@link #pathField} */
-	public TextField getPathField()
-	{
-		return pathField;
-	}
-
-	/** @param pathField the {@link #pathField} to set */
-	public void setPathField(TextField pathField)
-	{
-		pathField.setTextFieldListener(pathFieldListener);
-		getCell(this.pathField).setActor(this.pathField = pathField);
-	}
-
 	/** {@link #build() builds} if necessary */
 	@Override
 	public void setDirectoriesChoosable(boolean directoriesChoosable)
@@ -549,20 +427,6 @@ public class FC_List extends FileChooser
 	public Style getStyle()
 	{
 		return style;
-	}
-
-	/** @param style the {@link #style} to set and use for all widgets */
-	public void setStyle(Style style)
-	{
-		this.style = style;
-		backButton.setStyle(style.backButtonStyle);
-		cancelButton.setStyle(style.cancelButtonStyle);
-		chooseButton.setStyle(style.chooseButtonStyle);
-		currentlySelected.setStyle(style.contentsStyle);
-		contentsPane.setStyle(style.contentsPaneStyle);
-		openButton.setStyle(style.openButtonStyle);
-		parentButton.setStyle(style.parentButtonStyle);
-		pathField.setStyle(style.pathFieldStyle);
 	}
 
 	/**

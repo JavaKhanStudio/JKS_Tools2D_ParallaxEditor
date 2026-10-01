@@ -77,7 +77,4 @@ public class JksCheckBox extends TextButton
 		image.setDrawable(checkbox);
 		super.draw(batch, parentAlpha);
 	}
-
-	public Image getImage () 
-	{return image;}
 }

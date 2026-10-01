@@ -306,15 +306,6 @@ public class JksTextureList extends Widget implements Cullable
 				itemWidth - decalX *2, itemHeight - decalY * 2);
 	}
 
-	public void clearItems()
-	{
-		if (selected.size == 0)
-			return;
-		selected.clear();
-		selection.clear();
-		invalidateHierarchy();
-	}
-
 	public void clearSelected()
 	{
 		selection.clear();
@@ -327,9 +318,6 @@ public class JksTextureList extends Widget implements Cullable
 	 */
 	public Array<TextureRegion> getItems()
 	{return selected;}
-
-	public float getItemHeight()
-	{return itemHeight;}
 
 	protected String toString(TextureRegion object)
 	{

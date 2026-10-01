@@ -1,0 +1,16 @@
+# r42: drive the selection screen's file chooser (tools/driver-probe.sh < this, shots in editor/build/r42).
+# The driver clicks a control's center only, not a list row: "select" on the selected folder (the first row) enters it.
+sleep 3
+shot build/r42/0-start.png
+click text:up
+sleep 1
+shot build/r42/1-up.png
+click text:select
+sleep 1
+shot build/r42/2-into-folder.png
+click text:back
+sleep 1
+shot build/r42/3-back.png
+open Files/Demos/City.plax
+sleep 2
+shot build/r42/4-opened.png
