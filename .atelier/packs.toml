@@ -268,3 +268,76 @@ line numbers are commit 2a7e3f6 (`git show 2a7e3f6:<path>` shows the original), 
 anything you fix that it still lists as broken MOVES into its §10 then/now table rather
 than being deleted.
 """
+
+# #assets moved here at library r133: packing, flatten and export are the editor's code.
+[tags.assets]
+label = "Images & atlas"
+description = "Atlases, packing, flatten, loose PNGs, filtering"
+color = "#7fd6a6"
+sort = 40
+context = """
+The editor's side of atlases: what core does with one (filters, ETC2 loading, region keys) is
+the library board's #assets pack.
+editor/src/jks/tools2d/parallax/editor/vue/edition/utils/: Utils_TextureAtlas (flatten +
+packing), Utils_LoadingImages (dropped PNGs), Utils_Texture (load, swap, dispose). Also
+vue/edition/pixmap/PixmapPacker + PixmapPackerIO.
+Image state is the static maps in gvars/GVars_Vue_Edition — allImage, imageRef (region ->
+Position_Infos), outsideTextureReserve (path -> region), textureLink (region -> layers).
+Update one and not the others and it goes wrong later, never at the call site;
+Utils_Texture.replaceTexture is the one place that does all of them together.
+FILTERING IS LINEAR ON PURPOSE. The 50px paddingSize and the tripled border in
+Utils_TextureAtlas exist FOR Linear and mipmaps — flipping to Nearest to "fix" bleeding
+deletes the reason the padding is there. The 2019 flatten did exactly that, with pages at 3x
+the largest image: 15000px, which many GPUs simply refuse to upload, and the packer reports
+nothing. Keep preferredPageSize 4096, capped at FVars_Extensions.atlasMaxSize 16384.
+Export writes MipMapLinearLinear,Linear (r40: 200 layers 24.7 -> 17.0 ms), so createPacker rounds
+page sides UP TO A POWER OF TWO: GLES2/WebGL1 (Android, the GWT build) draw a mipmapped NPOT
+page black, and desktop shows nothing wrong. tools/r40-mipmap-stress.sh re-measures it.
+EXCEPT a pixel-art project (Project_Data.pixelArt, the VE_Options "Pixel art" box, d14/r126): it
+writes Nearest,Nearest, no mipmaps, pages cropped without POT rounding (writtenSize's powerOfTwo
+follows the filter). Ticked, Utils_Texture.applyPixelArt sets every project texture Nearest in the
+live preview and gives the saved filters back on untick: a texture the project gains while it is on
+must go through applyPixelArt too (registerOutsideImage, replaceTexture and Vue_Edition do). Export
+decides to flatten from the atlas FILE's filter, never the live texture's, which the preview changed.
+tools/r126-pixel-art.txt drives it end to end.
+Pages are ALLOCATED at that size but WRITTEN cropped (PixmapPackerIO.trimmed, r114): each to its
+regions' extent plus padding, rounded up to a power of two. Before, 4 small images exported as a
+4096x4096 page, 85 MiB of video memory. tools/r114-flatten-export.txt + r114-atlas-check.py measure it.
+Utils_TextureAtlas.pageSize then lays the images out WITHOUT PIXELS (PixmapPacker.layoutOnly) at
+every POT shape from 2048 to 4096 and keeps the one writing the fewest pixels, fewer pages on a tie
+(r121: Hiver 4096x4096 -> 4096x2048 + 4096x1024, 85 -> 64 MiB). Same-name regions stay in position
+order across pages only because the guillotine strategy fills its LAST page alone: a packer that
+back-fills earlier pages would break findLayer's atlas-order lookup.
+ETC2 (d13, r125: Project_Data.etc2, the "ETC2" box): PixmapPackerIO also writes each page, bled
+and cropped, through pixmap/Etc2 (our own encoder, ETC1 modes + EAC alpha, parallel, mip chain
+averaged 2x2 because a compressed texture cannot glGenerateMipmap) as <name>_N.zktx, and
+<name>.etc2.atlas with the SAME page bodies. A change to what the atlas says of a page goes through
+pageBody, or the two atlases disagree. core picks the copy in Gvars_Parallax.atlasFile when
+setCompressedAtlases is on (falls back to the PNG atlas when the copy is missing). Proof:
+tools/r125-etc2-export.txt, then tools/r125-etc2-check.py (independent decoder, all ETC2 modes:
+PSNR per region, colour >= 30 dB, alpha >= 40) — and render both atlases on a GPU.
+Mipmap levels average 2^n-pixel blocks, so PixmapPacker duplicates each image's border over HALF
+the padding (25px), and export writes pages through PixmapPackerIO with bleed = true (ColorBleed:
+transparent pixels take their neighbours' colour). A 2px border tiled layers with a seam at every
+join, and unbled black outlined every silhouette in grey (r53: tools/r53-export-place.txt, then
+tools/r53-seam.py). An export is NOT pixel-identical to the preview of a Linear source atlas:
+mipmaps smooth it, by design.
+A layer names a region by NAME + POSITION among same-named regions, and PixmapPackerIO
+.packedName writes index -1 when a name is used once. TexturePacker numbers files from 1
+(ground_1, ground_2), so "ground"+index and "ground"+position are two different keys — mixing
+them listed ground #2 twice and ground #1 never. Flatten must pack EVERY region of a name, or
+the .plax written next asks for a region the atlas it just produced does not contain.
+PIXMAPS ARE NATIVE MEMORY AND NOTHING FREES THEM FOR YOU. The eyedropper allocated one per
+frame while armed and disposed none. Reading an atlas's pixels also changes the LIVE texture's
+filter as a side effect — export used to leave the editor's own preview on Nearest.
+TWO SEAMS WITH #project-io, and a ticket that crosses either needs BOTH tags: export triggers
+flatten (Utils_Saving.flattenAndExport), and flatten then rewrites every Position_Infos to
+fromAtlas=true, which is what the saver writes out; and hot reload swaps textures through
+Utils_Texture.replaceTexture while #project-io owns the watcher itself.
+Compiling proves nothing here. `./gradlew :editor:run`, flatten a sample from editor/Files and
+look at the atlas it wrote.
+MEMORY_LANE.md §6 is the recorded history here — HISTORY, not a backlog. Its paths and
+line numbers are commit 2a7e3f6 (`git show 2a7e3f6:<path>` shows the original), and
+anything you fix that it still lists as broken MOVES into its §10 then/now table rather
+than being deleted.
+"""
