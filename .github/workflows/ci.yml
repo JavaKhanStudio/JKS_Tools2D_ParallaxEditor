@@ -44,3 +44,20 @@ jobs:
       # A tools/*.sh that opens a window runs it in cage, or says why not (library r171, r175).
       - name: Check no script opens a window outside cage
         run: tools/offscreen-lint.sh && tools/offscreen-lint-test.sh
+
+  # tools/parallax_lab.py's layout lint on pages whose faults were seen full size (r129). It reads only files in git:
+  # demo/lab/round1, demo/assets and editor/Files.
+  python-tools:
+    name: Python tools
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Test the lab's lint
+        run: |
+          pip install Pillow==12.3.0
+          python3 tools/parallax_lab_test.py
