@@ -22,12 +22,13 @@ and in the library's README; branches and releases in RELEASING.md.
   `:demo:lab` and `:demo:stress` render in a headless cage (`gradle/offscreen.gradle`, off with
   `ATELIER_NO_OFFSCREEN=1`, only when Simon asked to watch), and fail when there is no cage. A new JavaExec task calls
   `rootProject.offscreen(it)` or `rootProject.headless(it)`, or the build stops. Anything else that opens one goes
-  through cage or `tools/offscreen.sh`; a nested X server inside cage comes from `tools/nested-x.sh`. Cage renders on
-  the NVIDIA GPU, a desktop window on the Intel one: `:demo:stress` prints which, compare numbers of the same.
+  through cage or `tools/offscreen.sh`: `tools/offscreen-lint.sh` (CI) fails a `tools/*.sh` that does neither, unless
+  it carries `# on-screen: <why>` (`tools/start-demo.sh`); a copy of the library's, change its rules there first. A nested
+  X server inside cage comes from `tools/nested-x.sh`. Cage renders on the NVIDIA GPU, a desktop window on the Intel one: `:demo:stress` prints which, compare numbers of the same.
 - Every dependency version, the library's (`parallaxVersion`) and the editor's `version` are in `gradle.properties`.
 - Repositories go in `settings.gradle` only: `FAIL_ON_PROJECT_REPOS` fails the build on a module-level one.
 - CI (`.github/workflows/ci.yml`, JDK 17, 21 and 25) runs `./gradlew build`, then `./gradlew :editor:distZip
-  :demo:distZip`, against the library from Maven Central.
+  :demo:distZip`, against the library from Maven Central, then `tools/offscreen-lint.sh` and its test.
 - `editor/Files` holds the 2019 sample `.plax` files, the library's proof that format 1 still loads (it keeps byte
   copies in `core/test-data/samples`). Never re-export or overwrite them.
 

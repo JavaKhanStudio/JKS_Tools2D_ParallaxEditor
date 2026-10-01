@@ -40,3 +40,7 @@ jobs:
 
       - name: Check the editor and demo packages
         run: ./gradlew :editor:distZip :demo:distZip
+
+      # A tools/*.sh that opens a window runs it in cage, or says why not (library r171, r175).
+      - name: Check no script opens a window outside cage
+        run: tools/offscreen-lint.sh && tools/offscreen-lint-test.sh
