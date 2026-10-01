@@ -1,0 +1,9 @@
+# This board's ACTIONS — what it does often, one press away (atelier/actions.py in the atelier checkout).
+# `run` is a script (no session, no tokens), `prompt` files a ticket.
+# A script runs only once Simon has pressed Keep on the Actions tab.
+# The Godot demo's button stays on the library's board (parallax), with engines/godot.
+
+[actions.demo-libgdx]
+label = "Start the libGDX demo"
+about = "Opens demo/ in a window on this machine's screen: SPACE variant, ENTER scene, N tint, LEFT/RIGHT scroll, R reset. Builds it first (a few seconds, longer after a change). Ends when you close the window."
+run   = ["tools/start-demo.sh", "libgdx"]
