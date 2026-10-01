@@ -16,6 +16,8 @@ and in the library's README; branches and releases in RELEASING.md.
   repository checked out beside this one, `settings.gradle` builds its `core` from source instead
   (`./gradlew :editor:parallaxSource` says which, `-PparallaxFromCentral` forces Maven). A change to what a page holds
   starts there: the stored field and its format bump in the library, a snapshot, then the control here.
+- Its tasks are on the Atelier board `parallax-editor`, a sub board of the library's `parallax`; its tags and context
+  packs are in `.atelier/packs.toml`.
 - Never open a window on Simon's screen. With `ATELIER_AGENT` set or `CLAUDECODE=1`, `:editor:run`, `:demo:run`,
   `:demo:lab` and `:demo:stress` render in a headless cage (`gradle/offscreen.gradle`, off with
   `ATELIER_NO_OFFSCREEN=1`, only when Simon asked to watch), and fail when there is no cage. A new JavaExec task calls

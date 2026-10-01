@@ -33,3 +33,5 @@ editor/packing_*/
 .claude/skills/start-worker
 .claude/skills/write-context-pack
 .claude/skills/write-lexicon
+.claude/skills/find-doctrine
+.claude/skills/find-strategy
