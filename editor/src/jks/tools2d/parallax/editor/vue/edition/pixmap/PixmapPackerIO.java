@@ -167,12 +167,6 @@ public class PixmapPackerIO
 			writer.append("  rotate: false" + "\n");
 			writer.append("  xy: " + (int) rect.x + "," + (int) rect.y + "\n");
 			writer.append("  size: " + (int) rect.width + "," + (int) rect.height + "\n");
-			if (rect.splits != null) {
-				writer.append("  split: " + rect.splits[0] + ", " + rect.splits[1] + ", " + rect.splits[2] + ", " + rect.splits[3] + "\n");
-				if (rect.pads != null) {
-					writer.append("  pad: " + rect.pads[0] + ", " + rect.pads[1] + ", " + rect.pads[2] + ", " + rect.pads[3] + "\n");
-				}
-			}
 			writer.append("  orig: " + rect.originalWidth + ", " + rect.originalHeight + "\n");
 			writer.append("  offset: " + rect.offsetX + ", " + (int)(rect.originalHeight - rect.height - rect.offsetY) + "\n");
 			writer.append("  index: " + regionIndex + "\n");
