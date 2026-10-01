@@ -44,8 +44,8 @@ and in the library's README; branches and releases in RELEASING.md.
 
 ## Demo
 
-- `ParallaxLab --shots` has a copy in the library, `shots/.../ParallaxShots`, which the reader frame checks run: change
-  how a scene is shot, change it there too.
+- The grading lab (`ParallaxLab`) has no stills mode (library r157): stills of a round come from the library's
+  `tools/parallax-lab-shots.sh ROUND OUT`, its reference renderer `shots/.../ParallaxShots`.
 
 ## Credits
 
