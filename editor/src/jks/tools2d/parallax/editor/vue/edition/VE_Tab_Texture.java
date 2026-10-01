@@ -33,7 +33,6 @@ import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
 /** Settings of the selected layer: position in the stack, flips, offsets, size, speeds, padding. */
 public class VE_Tab_Texture extends Tab
 {
-	private static final int totalColspan = 5;
 
 	private final Table container = new Table();
 	private final Table scrolled = new Table();
@@ -51,6 +50,12 @@ public class VE_Tab_Texture extends Tab
 
 	private final Image showSelect = new Image()
 	{
+		// Its cell grows it to the tab's width. The region's own width (1658 for a cloud) made the whole tab wider than
+		// the scroll pane, which centred it and cut the left edge of every row (r49).
+		@Override
+		public float getPrefWidth()
+		{return 0;}
+
 		@Override
 		public float getPrefHeight()
 		{return getDrawable() == null ? 0 : GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width / 2f;}
@@ -138,25 +143,30 @@ public class VE_Tab_Texture extends Tab
 			sliders.add(row).row();
 		}
 
-		container.add(new VisLabel("SECTION SELECTED")).pad(6).colspan(totalColspan).row();
-		container.add(showSelect).colspan(totalColspan).row();
-		container.add(kindSection).colspan(totalColspan).pad(4).row();
-		container.add(indexSelectionSpinner).colspan(2);
-		container.add(selectFirst);
-		container.add(selectMiddle);
-		container.add(selectLast).row();
-		container.add(indexPositionSpinner).colspan(2);
-		container.add(moveFirst);
-		container.add(moveMiddle);
-		container.add(moveLast).row();
-		container.add(clone);
-		container.add(makeAsDefault);
-		container.add(delete);
-		container.add(unDelete).row();
-		container.add(flipX);
-		container.add(flipY);
-		container.add(mirror).row();
-		container.add(sliders).expand().fill().colspan(totalColspan);
+		// The selection rows have a table of their own: in the tab's, the Kind section and the sliders spread their
+		// width over these columns, and the tab came out wider than the panel (r49).
+		Table layerRows = new Table();
+		layerRows.add(indexSelectionSpinner).colspan(2);
+		layerRows.add(selectFirst);
+		layerRows.add(selectMiddle);
+		layerRows.add(selectLast).row();
+		layerRows.add(indexPositionSpinner).colspan(2);
+		layerRows.add(moveFirst);
+		layerRows.add(moveMiddle);
+		layerRows.add(moveLast).row();
+		layerRows.add(clone);
+		layerRows.add(makeAsDefault);
+		layerRows.add(delete);
+		layerRows.add(unDelete).row();
+		layerRows.add(flipX);
+		layerRows.add(flipY);
+		layerRows.add(mirror).row();
+
+		container.add(new VisLabel("SECTION SELECTED")).pad(6).row();
+		container.add(showSelect).growX().row();
+		container.add(kindSection).pad(4).row();
+		container.add(layerRows).row();
+		container.add(sliders).expand().fill();
 
 		// The tab is taller than a 720-pixel window: scroll instead of pushing the tab bar off the top.
 		scrolled.add(Utils_Interface.buildVerticalScroll(container, baseSkin)).expand().fill();

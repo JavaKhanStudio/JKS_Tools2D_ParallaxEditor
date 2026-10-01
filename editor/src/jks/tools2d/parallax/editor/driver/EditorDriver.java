@@ -58,6 +58,7 @@ import jks.tools2d.parallax.editor.vue.Vue_Selection;
  *                       image list (index), list (index or row text), color picker (#rrggbb)
  * open FILE             opens a .plaxpj/.plax/.jplax/.atlas as the start screen would (relative to editor/)
  * shot FILE.png         writes the next rendered frame
+ * resize W H            sets the window to W x H pixels (a compositor that tiles, cage, may refuse: see the reply)
  * fps                   "ok FPS period AVG MAX work AVG MAX": over the last 120 frames, the ms from one frame to the
  *                       next (vsync and GPU included) and the ms the render thread spent issuing a frame
  * </pre>
@@ -273,6 +274,14 @@ public final class EditorDriver
 				return Vue_Selection.selectSingleFile(Gdx.files.absolute(new java.io.File(file).getAbsolutePath())) ? "ok" : "err cannot open " + file;
 			case "fps":
 				return fps();
+			case "resize":
+				try
+				{
+					Gdx.graphics.setWindowedMode(Integer.parseInt(target), Integer.parseInt(value));
+					return "ok " + Gdx.graphics.getWidth() + " " + Gdx.graphics.getHeight();
+				}
+				catch (NumberFormatException | NullPointerException e)
+				{return "err usage: resize W H";}
 			case "shot":
 				if (target == null)
 					return "err usage: shot FILE.png";

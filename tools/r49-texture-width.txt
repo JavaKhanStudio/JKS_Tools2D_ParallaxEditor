@@ -1,0 +1,31 @@
+# r49: every Textures tab control inside the panel, on every kind, at 1280x720 and at the narrowest window (1225):
+#   PROBE_SIZE=1400x900 tools/driver-probe.sh < tools/r49-texture-width.txt
+# then check that no "texture.*" line of each "list" has x < 0 or x + w past texture.preview's right edge (the preview
+# fills the tab's width). Change both resize lines to 1280 for the other size. Shots in editor/build/r49.
+sleep 3
+resize 1225 720
+sleep 2
+open Files/Demos/OneNight.plaxpj
+sleep 2
+# Opening rebuilds the screen at the window size it had: resize again once open.
+resize 1225 720
+sleep 1
+click tab.textures
+sleep 1
+set texture.kind IMAGE
+sleep 1
+list
+shot build/r49/image.png
+set texture.kind EMPTY
+sleep 1
+list
+set texture.kind PARTICLES
+sleep 1
+list
+set texture.kind SHADER
+sleep 1
+list
+set texture.kind SEQUENCE
+sleep 1
+list
+shot build/r49/sequence.png
