@@ -7,41 +7,25 @@ description = "The VisUI screens, panels, tabs, sliders, buttons and dialogs, an
 color = "#c3a6f0"
 sort = 30
 context = """
-editor/src/jks/tools2d/parallax/editor/: vue/Vue_Selection (start screen), vue/Vue_Edition
-(edition screen), vue/edition/VE_*.java (the panels), gvars/GVars_UI (skin, fonts, stage),
-gvars/GVars_Vue_Edition (editor state). Run it: `./gradlew :editor:run` — workingDir is
-editor/, which is how it finds the samples in editor/Files.
-COMPILING PROVES NOTHING IN THIS PACKAGE. Its recorded history is controls that do nothing:
-a "change the atlas?" dialog with empty YES *and* NO handlers, a "Change Atlas" button with
-an empty listener, a folder button with no listener at all, Add at Front/Back radios that
-only checked themselves, a VSync checkbox created twice where the displayed one had no
-listener. After wiring a control, START THE EDITOR AND USE IT.
-State is static GVars_* and there is one project at a time. Panels read the window size when
-they are BUILT, so Vue_Edition rebuilds them after a resize — anything that caches a size
-outside that rebuild goes stale with no symptom but a wrong layout.
-`VisUI.getSizes().scaleFactor = 0.6f` in GVars_UI.init mutates VisUI's GLOBAL sizes and the
-whole layout is built around it. Never set it from inside a widget: the 2019 code did it in a
-copied color picker, so every spinner's size depended on whether a picker had been built yet.
-NEVER MUTATE A SHARED SKIN STYLE. `title.getStyle().fontColor = LIGHT_GRAY` on the shared
-default style turned every label in the application gray. Copy it first — GVars_UI's
-labelStyle_Second exists for exactly that.
-GVars_UI.resize() regenerates the size-dependent FreeType font: dispose the previous one. It
-leaked two fonts per call and is called twice at startup. Same for icon textures and the
-color pickers (they hold shaders) — nothing in scene2d disposes itself.
-Sliders are libgdxutils/JksNumberSlider: the wheel changes the digit left of the text cursor.
-EVERY CONTROL HAS A NAME (setName; tab buttons via driver/Names.tabs). `--driver-port=N`
-(driver/EditorDriver) finds controls by those names, and the presenter board's scripts
-(~/Documents/GitHub/presenter) do too. Name a new control. A rename breaks those scripts.
-See it headless: `./gradlew :editor:installDist`, then `tools/driver-probe.sh <project>` reads
-commands on stdin (list, click, set, wheel, shot x.png) and runs the editor in cage, off Simon's screen.
-The speed "increment" defaults are MULTIPLIERS (0.75, 1.25) while the rest are additive — a
-range that suits one is nonsense for the other (a -0.01..0.01 range multiplied new layers'
-speed by 0.005).
-README.md's layer-settings table is the documented meaning of every control in this package:
-rename or rescale one and fix the table in the SAME commit.
-../JKS_Tools2D_ParallaxBackground/MEMORY_LANE.md §6 (Simon's private notes there, never committed) is
-the history here, as of the library's commit 2a7e3f6 (`git show 2a7e3f6:<path>` in that checkout):
-HISTORY, not a backlog. Something you fix that it lists as broken MOVES into its §10 table.
+editor/src/jks/tools2d/parallax/editor/: vue/Vue_Selection, vue/Vue_Edition (the two
+screens), vue/edition/VE_*.java (the panels), gvars/GVars_UI (skin, fonts, stage),
+gvars/GVars_Vue_Edition (state).
+COMPILING PROVES NOTHING HERE. The 2019 editor shipped a dialog with empty YES and NO
+handlers, buttons with empty listeners or none, radios that only checked themselves.
+After wiring a control, use it: tools/driver-probe.sh (after `./gradlew
+:editor:installDist`) drives the editor in cage, off Simon's screen.
+State is static GVars_*, one project at a time. Panels read the window size when BUILT
+and Vue_Edition rebuilds them after a resize: a size cached outside that rebuild goes
+stale silently. GVars_UI.init sets VisUI's GLOBAL scaleFactor (0.6) and the layout is
+built on it: never set it from a widget.
+NEVER MUTATE A SHARED SKIN STYLE: one fontColor change on the default style turned every
+label gray. Copy it first (GVars_UI.labelStyle_Second). Nothing in scene2d disposes
+itself: fonts GVars_UI.resize regenerates, icon textures and colour pickers (shaders)
+all leaked.
+EVERY CONTROL HAS A NAME (setName; tabs via driver/Names): the driver and the
+presenter's scripts (~/Documents/GitHub/presenter) find controls by it. Name a new one;
+a rename breaks them. README.md's "Using the editor" documents every control: fix it in
+the commit that changes one.
 """
 
 # Split off from `assets` on 2026-09-12 (doubt d1, decision B). The seam between the two is
@@ -53,40 +37,26 @@ description = "Save, export, autosave, paths, the file chooser, hot reload (a bu
 color = "#5ec8c0"
 sort = 45
 context = """
-utils/Utils_Saving.java (under editor/src/jks/tools2d/parallax/editor/vue/edition/) is all of
-save, export, autosave and "pack textures". Also gvars/EditorPaths (every path decision),
-gvars/FVars_Extensions (plax / jplax / plaxpj), vue/edition/data/ (Project_Data,
-WholePage_Editor, Outside_Source, Position_Infos), filechooser/, filewatch/FileWatchService +
-utils/WatchedImage, and Vue_Selection's open-by-extension dispatch.
-TWO MODELS, AND THEY ARE NOT THE SAME FILE. buildWholePageForExport keeps ONLY layers whose
-image is in the atlas — that is the .plax/.jplax a game reads. buildWholePageAsProjectForSaving
-keeps EVERY layer, loose PNGs included, marking which was which in WholePage_Editor.inside.
-Write one where the other belongs and layers vanish from the export with no error anywhere.
-SEAM WITH #assets, needing both tags: exporting while any image is loose asks to flatten
-first, and on a FAILED flatten savingExport is deliberately not called — the images are still
-loose, and exporting anyway would silently drop their layers.
-NEVER RESOLVE A SAVED IMAGE PATH BY HAND. EditorPaths.resolveProjectFile does it: absolute
-as-is, relative against GVars_Vue_Edition.relativePath, falling back to the working directory
-where 2019 projects put their "packing_" folders. The 2019 "pack for moving" also rewrote
-every ATLAS region's path, and wrote files relative to wherever the editor happened to start.
-Autosave goes to EditorPaths.autoSaveFolder() — editor/Files/AutoSave from the module,
-~/.parallax-editor/autosave otherwise — stores ABSOLUTE image paths because the copy does not
-sit beside the project, and prunes by a regex anchored on this project's own prefix, so
-AUTO_<name>_night_* is not one of ours. 10 kept, every 300s of RENDERED time: the timer is
-accumulated delta in Vue_Edition.render, so it does not tick while the window is not drawing.
-packTextures and renameOutsideImage move LIVE state as well as files (imageRef urls,
-outsideTextureReserve, activeFileWatching) and cancel the old WatchedImage: miss one and the
-image hot-reloads onto a dead key. Hot reload is ONE FileWatchService thread for every watched
-image — cancel on each path change and on project close, or a queued reload fires on a
-disposed texture. Test that for real: save a PNG the open editor uses, watch the layer change.
-Every failure here is reported by a Dialogs call and nothing else; a silent return means you
-swallowed one. Gates: `./gradlew :editor:run`, export a sample from editor/Files and REOPEN
-the result, plus `./gradlew :core:test` in the library's checkout: PlaxFormatTest reads its byte
-copies of those samples. Never
-overwrite editor/Files/*.plax to make something pass; they are the 2019 evidence (see #format).
-../JKS_Tools2D_ParallaxBackground/MEMORY_LANE.md §6 (Simon's private notes there, never committed) is
-the history here, as of the library's commit 2a7e3f6 (`git show 2a7e3f6:<path>` in that checkout):
-HISTORY, not a backlog. Something you fix that it lists as broken MOVES into its §10 table.
+editor/src/jks/tools2d/parallax/editor/: vue/edition/utils/Utils_Saving (save, export,
+autosave, pack textures), gvars/EditorPaths (every path decision), vue/edition/data/,
+filechooser/, filewatch/FileWatchService + utils/WatchedImage, Vue_Selection (open).
+TWO MODELS, NOT ONE FILE: buildWholePageForExport keeps ONLY layers whose image is in
+the atlas (the .plax/.jplax a game reads); buildWholePageAsProjectForSaving keeps every
+layer, marked in WholePage_Editor.inside. Write one where the other belongs and layers
+vanish with no error. SEAM WITH #assets (tag both): export with a loose image flattens
+first, and a FAILED flatten must not export (Utils_Saving.flattenAndExport), or the
+loose layers drop.
+NEVER RESOLVE A SAVED IMAGE PATH BY HAND: EditorPaths.resolveProjectFile does (2019
+projects need its working-directory fallback). Autosave (EditorPaths.autoSaveFolder)
+stores ABSOLUTE paths, prunes by a regex anchored on this project's prefix, and counts
+RENDERED time: no tick while nothing draws.
+packTextures and renameOutsideImage move LIVE state too (imageRef urls,
+outsideTextureReserve, activeFileWatching) and cancel the old WatchedImage: miss one and
+a reload lands on a dead key. One FileWatchService thread watches every image: cancel on
+each path change and on close.
+Every failure here is reported by a Dialogs call; a silent return swallowed one. Gate:
+export a sample from editor/Files in `./gradlew :editor:run` and REOPEN it
+(tools/driver-probe.sh).
 """
 
 # #build, #format and #runtime share their names with board parallax's tags, and were copies of
@@ -98,26 +68,25 @@ description = "Gradle, CI, dependency versions, the editor's release, the board'
 color = "#e8938f"
 sort = 50
 context = """
-This repository's build: settings.gradle, build.gradle, gradle.properties, editor/build.gradle,
-demo/build.gradle, gradle/offscreen.gradle, .github/workflows/{ci,release}.yml, RELEASING.md.
-The library's (core, Maven Central, its browser, Godot and jME gates) is
-../JKS_Tools2D_ParallaxBackground, under board parallax's #build pack.
-TWO LIBRARIES CAN BE UNDER YOU. With the library checked out beside this one, settings.gradle's
-includeBuild builds its core from source; CI and a fresh clone take parallaxVersion from
-Central (a -SNAPSHOT on develop). An editor change that needs an unpushed library change is
-green here and red in CI. `./gradlew :editor:parallaxSource` says which library a build took;
-`-PparallaxFromCentral` builds as CI does.
-build.gradle's cacheChangingModulesFor 0 looks the snapshot up every build: without it CI
-built against a day-old one (r48).
-gradle.properties holds two versions: `version` is the editor's own (ParallaxEditor-X.Y.Z.zip),
-`parallaxVersion` the library's, so the page format the editor writes. Never one for the other.
-Every JavaExec calls rootProject.offscreen(it) or rootProject.headless(it); tools/*.sh that
-open a window go through cage. tools/offscreen-lint.sh is the library's copy: change its rules
-there first.
-Gates, what ci.yml runs on JDK 17, 21 and 25: `./gradlew build`, `./gradlew :editor:distZip
-:demo:distZip`, `tools/offscreen-lint.sh && tools/offscreen-lint-test.sh`; job python-tools:
-`python3 tools/parallax_lab_test.py`. A v* tag runs release.yml: the zip goes to the GitHub
-release only, nothing to Central. RELEASING.md is the procedure.
+Here: settings.gradle, build.gradle, gradle.properties, {editor,demo}/build.gradle,
+gradle/offscreen.gradle, .github/workflows/{ci,release}.yml, RELEASING.md. The library's
+is ../JKS_Tools2D_ParallaxBackground, under board parallax's #build pack.
+TWO LIBRARIES CAN BE UNDER YOU. With the library checked out beside this one,
+settings.gradle's includeBuild builds its core from source; CI and a fresh clone take
+parallaxVersion from Central (a -SNAPSHOT on develop). An editor change that needs an
+unpushed library change is green here and red in CI. `./gradlew :editor:parallaxSource`
+says which library a build took; `-PparallaxFromCentral` builds as CI does.
+build.gradle's cacheChangingModulesFor 0 looks it up every build: CI built a day-old one
+(r48).
+gradle.properties holds two versions: `version` is the editor's own
+(ParallaxEditor-X.Y.Z.zip), `parallaxVersion` the library's: the page format it writes.
+Every JavaExec calls rootProject.offscreen(it) or rootProject.headless(it); tools/*.sh
+that open a window go through cage. tools/offscreen-lint.sh is the library's copy:
+change its rules there first.
+Gates, what ci.yml runs on JDK 17, 21 and 25: `./gradlew build`, `./gradlew
+:editor:distZip :demo:distZip`, `tools/offscreen-lint.sh &&
+tools/offscreen-lint-test.sh`; job python-tools: `python3 tools/parallax_lab_test.py`. A
+v* tag runs release.yml: the zip goes to the GitHub release only, nothing to Central.
 """
 
 [tags.format]
@@ -127,26 +96,25 @@ color = "#f2b263"
 sort = 20
 context = """
 The format is the library's: the serializers, heart/GVars_Serialization (Kryo),
-pages/Json_MixIns and pages/Utils_Page are in ../JKS_Tools2D_ParallaxBackground/core, and
-board parallax's #format pack holds their rules (Kryo registration order, setReferences,
-version bumps). A change to what a page holds starts there (field, format bump, snapshot),
-then the control here (AGENTS.md).
+pages/Json_MixIns and pages/Utils_Page are in ../JKS_Tools2D_ParallaxBackground/core,
+and board parallax's #format pack holds their rules (Kryo registration order,
+setReferences, version bumps). A change to what a page holds starts there, then the
+control here.
 The editor's side, under editor/src/jks/tools2d/parallax/editor/:
 gvars/GVars_Serialization_Editor (the library's Kryo, one Jackson ObjectMapper),
-vue/edition/utils/Utils_Saving (saving_Parallax_Kryo .plax, saving_Parallax_JSON .jplax, the
-.plaxpj project), vue/Vue_Selection.selectSingleFile (.plax through Utils_Page.loadPage,
-.jplax and .plaxpj through Jackson).
+vue/edition/utils/Utils_Saving (saving_Parallax_Kryo .plax, saving_Parallax_JSON .jplax,
+the .plaxpj project), vue/Vue_Selection.selectSingleFile.
 SAVE REBUILDS EVERY LAYER FROM THE LIVE ONE: Utils_Saving.modelOf calls the library's
-Utils_Page.buildFromPage(layer, ...). A stored field that method does not copy is lost at the
-first save in the editor, with no error. A layer whose region has no imageRef entry is skipped
-with a log line and nothing else.
-The mapper has FAIL_ON_UNKNOWN_PROPERTIES off: a .jplax or .plaxpj written by a newer library
-opens with the fields it does not know dropped, silently.
-editor/Files/*.plax are the 2019 samples, the library's proof format 1 still loads (it keeps
-byte copies in core/test-data/samples). Never re-export or overwrite them.
-Gate: open a page with the field, save, export, reopen, diff (tools/driver-probe.sh; worked
-examples: tools/r30-empty-layer-probe.txt, tools/r28-sequence-reopen-probe.txt). The format's
-own tests are `./gradlew :core:test`, in the library's checkout.
+Utils_Page.buildFromPage(layer, ...). A stored field that method does not copy is lost
+at the first save in the editor, with no error. A layer whose region has no imageRef
+entry is skipped with a log line and nothing else.
+The mapper has FAIL_ON_UNKNOWN_PROPERTIES off: a .jplax or .plaxpj written by a newer
+library opens with the fields it does not know dropped, silently.
+editor/Files/*.plax are the 2019 samples, the library's proof format 1 still loads (it
+keeps byte copies in core/test-data/samples). Never re-export or overwrite them.
+Gate: open a page with the field, save, export, reopen, diff (tools/driver-probe.sh;
+worked examples: tools/r30-empty-layer-probe.txt, tools/r28-sequence-reopen-probe.txt).
+The format's own tests are `./gradlew :core:test`, in the library's checkout.
 """
 
 [tags.runtime]
@@ -157,22 +125,24 @@ sort = 10
 context = """
 The runtime is the library's core:
 ../JKS_Tools2D_ParallaxBackground/core/src/jks/tools2d/parallax/ (ParallaxPageReader,
-ParallaxLayer, heart/Parallax_Heart), and board parallax's #runtime pack holds its rules and
-gates (`./gradlew :core:test`, the Godot and jME frame checks). Change it there: with that
-checkout beside this one, `./gradlew :editor:run` and `:demo:run` use the change at once
-(settings.gradle includeBuild); CI sees it only once the library's snapshot is published.
-Here it is used twice: the editor's preview (vue/Vue_Edition.parallax_Heart, whose reader's
-layers Utils_Saving saves) and demo/src (ParallaxDemo, ParallaxLab, ParallaxStress).
-A PREVIEW AND A REOPENED EXPORT DIFFER BY FILTER, NOT BY PLACE. r22 was filed as "an exported
-.plax reopens with its layers at a different horizontal place"; the best alignment was 0 px,
-and the difference was the export's MipMapLinearLinear atlas (#assets). Reopen the export with
-a Linear atlas before calling it a runtime bug.
-See it: `./gradlew :demo:run` (`--args="--page FILE.jplax"` for one page; stills off screen:
-tools/demo-shots.sh). `./gradlew :demo:stress` times generated pages and prints its GPU: cage
-renders on the NVIDIA one, a desktop window on the Intel one, so compare numbers of the same.
-demo/build.gradle's processResources copies the showcase pages from demo/showcase and their
-atlases from editor/Files/transfer and editor/Files/Demos, by file name: rename one and the
-demo loses it while the build passes (inferred: Gradle copies a missing include as nothing).
+ParallaxLayer, heart/Parallax_Heart), and board parallax's #runtime pack holds its rules
+and gates (`./gradlew :core:test`, the Godot and jME frame checks). Change it there:
+with that checkout beside this one, `./gradlew :editor:run` and `:demo:run` use the
+change at once (settings.gradle includeBuild); CI sees it only once the library's
+snapshot is published.
+Here it is used twice: the editor's preview (vue/Vue_Edition.parallax_Heart, whose
+reader's layers Utils_Saving saves) and demo/src.
+A PREVIEW AND A REOPENED EXPORT DIFFER BY FILTER, NOT BY PLACE. r22's "layers at a
+different horizontal place" was 0 px off: it was the export's MipMapLinearLinear atlas
+(#assets). Reopen the export with a Linear atlas before calling it a runtime bug.
+See it: `./gradlew :demo:run` (`--args="--page FILE.jplax"` for one page; stills off
+screen: tools/demo-shots.sh). `./gradlew :demo:stress` times generated pages and prints
+its GPU: cage renders on the NVIDIA one, a desktop window on the Intel one, so compare
+numbers of the same.
+demo/build.gradle's processResources copies the showcase pages from demo/showcase and
+their atlases from editor/Files/transfer and editor/Files/Demos, by file name: rename
+one and the demo loses it while the build passes (inferred: Gradle copies a missing
+include as nothing).
 """
 
 # #assets moved here at library r133: packing, flatten and export are the editor's code.
@@ -182,69 +152,26 @@ description = "Atlases, packing, flatten, loose PNGs, filtering"
 color = "#7fd6a6"
 sort = 40
 context = """
-The editor's side of atlases: what core does with one (filters, ETC2 loading, region keys) is
-the library board's #assets pack.
-editor/src/jks/tools2d/parallax/editor/vue/edition/utils/: Utils_TextureAtlas (flatten +
-packing), Utils_LoadingImages (dropped PNGs), Utils_Texture (load, swap, dispose). Also
-vue/edition/pixmap/PixmapPacker + PixmapPackerIO.
-Image state is the static maps in gvars/GVars_Vue_Edition — allImage, imageRef (region ->
-Position_Infos), outsideTextureReserve (path -> region), textureLink (region -> layers).
-Update one and not the others and it goes wrong later, never at the call site;
-Utils_Texture.replaceTexture is the one place that does all of them together.
-FILTERING IS LINEAR ON PURPOSE. The 50px paddingSize and the tripled border in
-Utils_TextureAtlas exist FOR Linear and mipmaps — flipping to Nearest to "fix" bleeding
-deletes the reason the padding is there. The 2019 flatten did exactly that, with pages at 3x
-the largest image: 15000px, which many GPUs simply refuse to upload, and the packer reports
-nothing. Keep preferredPageSize 4096, capped at FVars_Extensions.atlasMaxSize 16384.
-Export writes MipMapLinearLinear,Linear (r40: 200 layers 24.7 -> 17.0 ms), so createPacker rounds
-page sides UP TO A POWER OF TWO: GLES2/WebGL1 (Android, the GWT build) draw a mipmapped NPOT
-page black, and desktop shows nothing wrong. tools/r40-mipmap-stress.sh re-measures it.
-EXCEPT a pixel-art project (Project_Data.pixelArt, the VE_Options "Pixel art" box, d14/r126): it
-writes Nearest,Nearest, no mipmaps, pages cropped without POT rounding (writtenSize's powerOfTwo
-follows the filter). Ticked, Utils_Texture.applyPixelArt sets every project texture Nearest in the
-live preview and gives the saved filters back on untick: a texture the project gains while it is on
-must go through applyPixelArt too (registerOutsideImage, replaceTexture and Vue_Edition do). Export
-decides to flatten from the atlas FILE's filter, never the live texture's, which the preview changed.
-tools/r126-pixel-art.txt drives it end to end.
-Pages are ALLOCATED at that size but WRITTEN cropped (PixmapPackerIO.trimmed, r114): each to its
-regions' extent plus padding, rounded up to a power of two. Before, 4 small images exported as a
-4096x4096 page, 85 MiB of video memory. tools/r114-flatten-export.txt + r114-atlas-check.py measure it.
-Utils_TextureAtlas.pageSize then lays the images out WITHOUT PIXELS (PixmapPacker.layoutOnly) at
-every POT shape from 2048 to 4096 and keeps the one writing the fewest pixels, fewer pages on a tie
-(r121: Hiver 4096x4096 -> 4096x2048 + 4096x1024, 85 -> 64 MiB). Same-name regions stay in position
-order across pages only because the guillotine strategy fills its LAST page alone: a packer that
-back-fills earlier pages would break findLayer's atlas-order lookup.
-ETC2 (d13, r125: Project_Data.etc2, the "ETC2" box): PixmapPackerIO also writes each page, bled
-and cropped, through pixmap/Etc2 (our own encoder, ETC1 modes + EAC alpha, parallel, mip chain
-averaged 2x2 because a compressed texture cannot glGenerateMipmap) as <name>_N.zktx, and
-<name>.etc2.atlas with the SAME page bodies. A change to what the atlas says of a page goes through
-pageBody, or the two atlases disagree. core picks the copy in Gvars_Parallax.atlasFile when
-setCompressedAtlases is on (falls back to the PNG atlas when the copy is missing). Proof:
-tools/r125-etc2-export.txt, then tools/r125-etc2-check.py (independent decoder, all ETC2 modes:
-PSNR per region, colour >= 30 dB, alpha >= 40) — and render both atlases on a GPU.
-Mipmap levels average 2^n-pixel blocks, so PixmapPacker duplicates each image's border over HALF
-the padding (25px), and export writes pages through PixmapPackerIO with bleed = true (ColorBleed:
-transparent pixels take their neighbours' colour). A 2px border tiled layers with a seam at every
-join, and unbled black outlined every silhouette in grey (r53: tools/r53-export-place.txt, then
-tools/r53-seam.py). An export is NOT pixel-identical to the preview of a Linear source atlas:
-mipmaps smooth it, by design.
-A layer names a region by NAME + POSITION among same-named regions, and PixmapPackerIO
-.packedName writes index -1 when a name is used once. TexturePacker numbers files from 1
-(ground_1, ground_2), so "ground"+index and "ground"+position are two different keys — mixing
-them listed ground #2 twice and ground #1 never. Flatten must pack EVERY region of a name, or
-the .plax written next asks for a region the atlas it just produced does not contain.
-PIXMAPS ARE NATIVE MEMORY AND NOTHING FREES THEM FOR YOU. The eyedropper allocated one per
-frame while armed and disposed none. Reading an atlas's pixels also changes the LIVE texture's
-filter as a side effect — export used to leave the editor's own preview on Nearest.
-TWO SEAMS WITH #project-io, and a ticket that crosses either needs BOTH tags: export triggers
-flatten (Utils_Saving.flattenAndExport), and flatten then rewrites every Position_Infos to
-fromAtlas=true, which is what the saver writes out; and hot reload swaps textures through
-Utils_Texture.replaceTexture while #project-io owns the watcher itself.
-Compiling proves nothing here. `./gradlew :editor:run`, flatten a sample from editor/Files and
-look at the atlas it wrote.
-../JKS_Tools2D_ParallaxBackground/MEMORY_LANE.md §6 (Simon's private notes there, never committed) is
-the history here, as of the library's commit 2a7e3f6 (`git show 2a7e3f6:<path>` in that checkout):
-HISTORY, not a backlog. Something you fix that it lists as broken MOVES into its §10 table.
+editor/src/jks/tools2d/parallax/editor/vue/edition/: utils/Utils_TextureAtlas (flatten),
+Utils_LoadingImages (dropped PNGs), Utils_Texture, pixmap/PixmapPacker + PixmapPackerIO
+(pages written). Core's side: the library board's #assets pack.
+Image state is four static maps in gvars/GVars_Vue_Edition: update one alone and it
+breaks later, never at the call; Utils_Texture.replaceTexture does all four.
+EXPORT IS MIPMAPPED ON PURPOSE (MipMapLinearLinear,Linear, r40): the 50px padding, the
+border copied over half of it and bleed exist for it. Nearest to "fix" bleeding deletes
+their reason; a 2px border left a seam at every tile join (r53, tools/r53-seam.py).
+Pages round up to a power of two: GLES2/WebGL1 draw a mipmapped NPOT page black.
+Pixel art (Project_Data.pixelArt) writes Nearest, no mipmaps, no POT; the preview
+follows through Utils_Texture.applyPixelArt, which a texture added while it is on must
+go through too. Export reads the atlas FILE's filter, never the live texture's.
+What the atlas says of a page goes through PixmapPackerIO.pageBody, or the PNG and ETC2
+atlases disagree. Same-name regions keep position order only because the guillotine
+packer fills its LAST page alone: one that back-fills breaks findLayer. Flatten packs
+EVERY region of a name, or the .plax asks for one the new atlas lacks. Pixmaps are
+native memory: dispose each.
+Seams with #project-io, tag both: export triggers flatten (Position_Infos.fromAtlas
+becomes true); hot reload swaps through replaceTexture. Proofs: tools/r114-*, r125-*,
+r126-*, r40-*.
 """
 
 # #docs WRITTEN BY THE SPLIT (r1249)
