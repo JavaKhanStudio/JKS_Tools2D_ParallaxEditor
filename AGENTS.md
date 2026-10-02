@@ -25,6 +25,10 @@ and in the library's README; branches and releases in RELEASING.md.
   through cage or `tools/offscreen.sh`: `tools/offscreen-lint.sh` (CI) fails a `tools/*.sh` that does neither, unless
   it carries `# on-screen: <why>` (`tools/start-demo.sh`); a copy of the library's, change its rules there first. A nested
   X server inside cage comes from `tools/nested-x.sh`. Cage renders on the NVIDIA GPU, a desktop window on the Intel one: `:demo:stress` prints which, compare numbers of the same.
+  Under all of that, `.claude/settings.json` gives every Claude session here an empty `DISPLAY` and a `WAYLAND_DISPLAY`
+  naming no socket (r54, the library's r118): a window outside cage fails to open instead of showing. When Simon asks to
+  watch, put his back on the command: `DISPLAY=:0 WAYLAND_DISPLAY=wayland-0 ATELIER_NO_OFFSCREEN=1 ...`.
+  `tools/agent-screen-check.sh` proves both halves.
 - Every dependency version, the library's (`parallaxVersion`) and the editor's `version` are in `gradle.properties`.
 - Repositories go in `settings.gradle` only: `FAIL_ON_PROJECT_REPOS` fails the build on a module-level one.
 - CI (`.github/workflows/ci.yml`, JDK 17, 21 and 25) runs `./gradlew build`, then `./gradlew :editor:distZip
