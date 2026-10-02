@@ -1,0 +1,335 @@
+{
+ "board": "parallax-editor",
+ "built_at": "2026-10-02 09:55:12",
+ "tags": [
+  "assets",
+  "build",
+  "commissar",
+  "coordinator",
+  "docs",
+  "editor",
+  "format",
+  "project-io",
+  "runtime"
+ ],
+ "tickets": [
+  {
+   "ref": "r52",
+   "title": "Grade sampled closes",
+   "detail": "Closes sampled for Simon's review (r839). Grade each 1-5 as he scores: 1 really bad, 2 bad, 3 neutral, 4 good, 5 very good. Read `atelier show <ref>` and what its closing note says it committed (git show). Was it the right thing, done well, and closed honestly? Your grade is set beside his, never shown to him first, and never counts against the persona.\n\n  r30  r44\n\nFor each: `atelier grade <ref> <1-5> --why \"...\"` (one sentence, the reason). Then close this ticket.\n\nWHERE YOU AND SIMON DIFFERED, last time (his score, then yours): judge as he would.\n  r21  Simon 3, you 4: The DONE WHEN was proved with two real probes on one port, and a check for the race is included, though that check greps the log right after the port answers, s\n\nDone (zeno-fedora-parallax-editor-7): Graded r30 4 (verified r27's fix on e01.jplax, open/save/export/reopen diffed; slot named in tab not outlined in list, JSON export only) and r44 4 (02e5617 names chooser widgets, driver selects list rows; probe and shots prove it; path-field Enter limit stated).",
+   "tags": [
+    "commissar"
+   ]
+  },
+  {
+   "ref": "r54",
+   "title": "Agent sessions get no screen here too: .claude/settings.json strips DISPLAY and WAYLAND_DISPLAY (parallax r118)",
+   "detail": "Wanted: the editor repo gets parallax's process-level rail (JKS_Tools2D_ParallaxBackground commit aace13a, r118). Simon (02 Oct) still sees parallax windows pop up and close after a few seconds; no transcript showed which launch, so the library now gives every Claude session in its checkout DISPLAY=\"\" and WAYLAND_DISPLAY=no-screen-for-agents via .claude/settings.json \"env\". A window outside cage then fails (\"X11: Failed to open display\") instead of showing; cage (WLR_BACKENDS=headless) needs neither.\nDo: copy .claude/settings.json from the library (it has no other keys), add tools/agent-screen-check.sh adapted to this repo (cage path passes, ATELIER_NO_OFFSCREEN=1 path fails on \"Failed to open display\"; the library's runs tools/parallax-lab-shots.sh), one line in AGENTS.md and the #build pack.\nDone when: tools/agent-screen-check.sh exits 0, and :editor:run / :demo:stress as an agent still render in cage.\nOUT of scope: the board's own buttons (they run from atelier's server, not a session, and stay on screen).\nDiscovered while: parallax r118 (tests popping windows on Simon's screen).\n\nDone (hal-fedora-parallax-editor-10) 2026-10-02 11:40: Commit e0af104 (unpushed, left for the publish gate). Copied the library's .claude/settings.json (env DISPLAY=\"\", WAYLAND_DISPLAY=no-screen-for-agents) and added tools/agent-screen-check.sh, which reads that env and runs tools/demo-shots.sh twice. Through cage it passes. With ATELIER_NO_OFFSCREEN=1 it fails, and demo.log says \"Failed to open ",
+   "tags": [
+    "build"
+   ]
+  },
+  {
+   "ref": "r41",
+   "title": "Packing: prune the libGDX PixmapPacker fork to what export uses, and split its 142-line pack()",
+   "detail": "WHAT IS WRONG. editor/src/jks/tools2d/parallax/editor/vue/edition/pixmap/PixmapPacker.java (771 lines) is libGDX's PixmapPacker copied in 2019, with layoutOnly/packLayout added since. Nothing in editor/ or demo/ calls much of what it carries (word count across the sources, one hit = its own declaration):\n  - SkylineStrategy and SkylinePage (:525 to ~:650): both callers, Utils_TextureAtlas.java:237 and :269, pass GuillotineStrategy.\n  - the two short constructors that are not called, if any (check :39, :45 against Utils_TextureAtlas:237/:269).\n  - accessors nobody calls: getPage(String) :268, getPageIndex :279, generateTextureAtlas :300, updateTextureRegions :341, get/setPageWidth, get/setPageHeight, get/setPageFormat, get/setPadding, get/setPackToTexture, setDuplicateBorder (:354 on).\n  - Page.java getPixmap and getRects (Page.java:30, :34): fields are read directly.\n  - the 9-patch path: pack()'s isPatch branch (:112-123), getSplits and getPads (:652, 64 lines). VERIFY first that no packed name can end in \".9\" (what Utils_TextureAtlas passes as name: strip the extension? a file \"x.9.png\"?). If a user image could, keep it and say so in the note.\nThen pack(String, Pixmap) at :107 is 142 lines: lift the whitespace strip (:125 on) into its own method, keep the order of operations byte for byte.\nWHAT BETTER LOOKS LIKE. A packer that holds only what export and pageSize use; a header comment saying it is a trimmed copy of libGDX's (Apache-2.0, already credited? check NOTICE; add th",
+   "tags": [
+    "assets"
+   ]
+  },
+  {
+   "ref": "r22",
+   "title": "An exported .plax reopens with its layers at a different horizontal place than the editor showed when exporting",
+   "detail": "WHAT: In the editor, open demo/assets/Hiver.atlas, add parallax4 #0 and #2 (tab.addTexture, adding.imageList 0 then 2, adding.add), export with F.Export ticked (flatten), then open the exported .plax: the mountain layer (#2) sits at a different X than it did in the preview at export time (in the 866px preview, the diff covers the top 112px, the whole width). This happens with the code from BEFORE r41 too (commit 984874a jars), so r41 did not cause it. Guess, not checked: a layer added in the editor keeps a currentDistanceX that differs from what its decal gives when the page is rebuilt (ParallaxLayer.setUpEverything -> setDecalPercentX adds a delta to currentDistanceX; WholePage_Model.useAtlas calls resetPosition). It could also be the editor preview's world size differing from Gvars_Parallax's.\nPROOF it is fixed: the same driver flow (see tools/driver-probe.sh; the r41 session used EDITOR_BIN pointing at a private copy of the install) gives a pixel-identical preview before export and after reopening the .plax. Reproduce with Speed X = 0 and play off, or motion hides it.\nOUT OF SCOPE: stripped regions / useOriginalSize (r41, done); the flatten atlas itself (identical before and after flatten).\nDiscovered while: r41, checking in the editor that flatten keeps a stripped region's look.\nNote (iris-fedora-parallax-8): handed over — r53 (a reopened export places layers at another X than the preview showed; the pre-r41 editor does it too).\nNote (hal-fedora-parallax-9): Measured: the",
+   "tags": [
+    "project-io",
+    "runtime"
+   ]
+  },
+  {
+   "ref": "r49",
+   "title": "Textures tab is wider than its panel: Layer Selection and the preview start at x<0, their left edge cut",
+   "detail": "Wrong: in the Textures tab at 1280x720 the Layer Selection / Layer Position spinners start left of the panel: the driver's 'list' gives texture.selection at x=-4, texture.position at x=-1, texture.preview at -4, and the shots show 'ayer Selection' with its L cut off (r28's attachments 1-loaded.png, 4-edited.png). The container (VE_Tab_Texture.java, built in the constructor around line 140: colspan 5 rows, the spinner colspan 2) is wider than size_Bloc_Selection_Parallax_Width once the Kind section is in it, and the scroll pane centres it. It does this on every kind, so it predates r28. Done when: every control's x from 'list' (tools/driver-probe.sh) is >= 0 and its right edge is within the panel at 1280x720 and at the minimum 1225-pixel width; shots before/after attached. Out of scope: the sequence controls' own layout. Discovered while: r28, reading its probe shots.\nNote (fedora-parallax-editor-4): handed over — r49 (Textures tab wider than panel), r48 once the library's format-8 snapshot is published.\n\nDone (fedora-parallax-editor-5): Fixed in commit 51da00c (not pushed).\nThere were two causes, in VE_Tab_Texture:\n- The preview Image asked for its region's own width (1658 px for OneNight's clouds).\n- The tab's 5-column table spread the full-width Kind section and sliders over the columns of the selection rows. On a SEQUENCE layer the content's preferred width was 313.8 px against a 303 px scroll viewport (at 1225), so the scroll pane centred it at x=-4 or x=-6.\nNow the previ",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r50",
+   "title": "Grade sampled closes",
+   "detail": "Closes sampled for Simon's review (r839). Grade each 1-5 as he scores: 1 really bad, 2 bad, 3 neutral, 4 good, 5 very good. Read `atelier show <ref>` and what its closing note says it committed (git show). Was it the right thing, done well, and closed honestly? Your grade is set beside his, never shown to him first, and never counts against the persona.\n\n  r26\n\nFor each: `atelier grade <ref> <1-5> --why \"...\"` (one sentence, the reason). Then close this ticket.\n\nWHERE YOU AND SIMON DIFFERED, last time (his score, then yours): judge as he would.\n  r21  Simon 3, you 4: The DONE WHEN was proved with two real probes on one port, and a check for the race is included, though that check greps the log right after the port answers, s\n\nDone (zeno-fedora-parallax-editor-6): Graded r26: 4. Work is in f96e86c (note's c0f4908 does not resolve).",
+   "tags": [
+    "commissar"
+   ]
+  },
+  {
+   "ref": "r29",
+   "title": "Board action: give the editor board its 'Start the libGDX demo' button (lost from parallax's Actions at r133)",
+   "detail": "WHAT: library r133 deleted demo/ from JKS_Tools2D_ParallaxBackground and removed [actions.demo-libgdx] from that repo's .atelier/actions.toml (it ran tools/start-demo.sh libgdx, which no longer exists there). This repository has tools/start-demo.sh libgdx (already libGDX only) but no .atelier/actions.toml, so the board has no button that opens the demo on Simon's screen.\nWANTED: .atelier/actions.toml here with the demo-libgdx action (label \"Start the libGDX demo\", run = [\"tools/start-demo.sh\", \"libgdx\"], the old about text: git -C ../JKS_Tools2D_ParallaxBackground show 5daa089~1:.atelier/actions.toml). Check that the atelier reads an actions file from a sub board's root; if it only reads the main board's, say so on the card rather than guess.\nPROVES IT: the parallax-editor board's Actions tab lists the button (it runs only after Simon presses Keep). When parallax r175 brings tools/offscreen-lint.sh here, start-demo.sh needs a \"# on-screen: the board's Start the demo button\" line.\nOUT OF SCOPE: the Godot demo button (it stays on the parallax board).\nDiscovered while: parallax r133 (repo split phase 3).\n\nDone (fedora-parallax-editor-2): Commit 013e776 (develop, not pushed): .atelier/actions.toml with demo-libgdx (label Start the libGDX demo, run tools/start-demo.sh libgdx; about text is the old one with the demo's current keys). A sub board does read its own file: atelier/actions.py takes <cfg root>/.atelier/actions.toml, and projects/parallax-editor.toml's root is this checkou",
+   "tags": [
+    "build"
+   ]
+  },
+  {
+   "ref": "r48",
+   "title": "Editor develop needs a library snapshot with format 8: CI against Maven Central fails from r27 on",
+   "detail": "Wrong: develop's unpushed r27 (1e1cc2b) and r28 call library APIs that the published io.github.javakhanstudio:parallax-background:2.5.0-SNAPSHOT lacks (EffectSupport, Enum_LayerKind.SEQUENCE, Sequence_Segment, ParallaxLayer.sequence/setSequence...). Locally the sibling checkout builds core from source, so ./gradlew build passes; './gradlew -PparallaxFromCentral :editor:compileJava' fails with 100 errors at HEAD already (r27), and CI (.github/workflows/ci.yml builds against Maven Central) will go red once they are pushed. The library's sequence commits (58f0c53 r182, b9b296d r183, 3b709ff r202...) are themselves unpushed (library develop 'ahead 4'). Done when: the library's snapshot carrying format 8 is published and '-PparallaxFromCentral :editor:compileJava :demo:compileJava' passes, or the editor's push is held until then; CI green on the pushed head. Out of scope: changing the APIs. Discovered while: r28, checking the CI path before commit.\nNote (fedora-parallax-editor-4): handed over — r49 (Textures tab wider than panel), r48 once the library's format-8 snapshot is published.\nNote (fedora-parallax-editor-5): Cause: CI's restored Gradle home held snapshot build 17 (09-30); Gradle rechecks a SNAPSHOT only after 24 h. Build 24 (format 8) was already published. Fix 7f41c75, pushed; watching CI.\n\nDone (fedora-parallax-editor-5): CI on develop is green again: run 36868081223 on 7f41c75 passed on JDK 17, 21 and 25, against snapshot build 20261001.094330-24.\nThe library's format-",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r43",
+   "title": "CI: run tools/parallax_lab_test.py, a passing test nothing runs",
+   "detail": "WHAT IS WRONG. tools/parallax_lab_test.py (3 unittest cases on tools/parallax_lab.py's layout lint, r129) passes today (`python3 tools/parallax_lab_test.py`: Ran 3 tests, OK, ~7 s) but no workflow, gradle task or script runs it: git grep finds its name nowhere outside itself. A lint rule can break and nobody sees it.\nWANTED. .github/workflows/ci.yml runs it once (one JDK leg or its own small job: actions/setup-python, `pip install Pillow`), after reading what files it needs: if it reads pages or atlases that are not in git (demo/lab rounds, build output), say so and ASK rather than commit them.\nPROOF. A CI run on a ci/* scratch branch shows the step green; then break one assertion locally to see it red (do not push that).\nOUT OF SCOPE. Changing parallax_lab.py; ruff in CI (separate decision). The C901 finding on parallax_lab.py:116 lint (11 > 10): judged fine in r36, a flat list of rules.\nDiscovered while: r36 Refacto day, looking for tests nobody runs.\nNote (fedora-parallax-editor-2): Commit 9001c0c on ci/r43-python-tools (new job python-tools); test passes on a fresh clone with only tracked files. Dispatching CI on the scratch branch.\n\nDone (fedora-parallax-editor-2): Commit 9001c0c on develop (fast-forwarded, not pushed: left to the publish gate): .github/workflows/ci.yml gets its own job \"Python tools\" (setup-python@v7, Python 3.13, Pillow==12.3.0) running tools/parallax_lab_test.py. The test reads only tracked files (demo/lab/round1, demo/assets, editor/Files): passed on",
+   "tags": [
+    "build"
+   ]
+  },
+  {
+   "ref": "r30",
+   "title": "Editor: open a format-5 page holding an EMPTY layer without crashing, and keep the layer through save and export",
+   "detail": "Wanted: the library's .plax format 5 (parallax board r177, commits f6052c9 + 8eec2f6 in JKS_Tools2D_ParallaxBackground) adds Parallax_Model.kind (IMAGE/EMPTY) and name. An EMPTY layer is ParallaxLayer.empty(name, sizeRatio): getTexRegion() is null and setTexRegion throws IllegalStateException. The editor's layer list, Textures tab and WholePage_Editor (buildLayer / buildOutsideLayer, the 'inside' flags) assume every layer has a region, so opening a page an author or a game tool gave an EMPTY layer most likely NPEs, and a save may drop kind/name if the editor rebuilds Parallax_Model from its own fields. Done when: with the library at the version holding r177, the editor opens core/test-data-style page with an EMPTY layer (make one: engines/godot/tests/effects/e01.jplax in the library repo), shows it as a named slot (outline or label) in the list, and Save project + Export write it back with kind EMPTY and its name (diff the .jplax). Out of scope: creating/editing EMPTY layers from the UI (parallax r181, phase 4). Discovered while: r177, shipping EMPTY layers in the library.\nNote (fedora-parallax-editor-1): Coordinator: r27's 1e1cc2b says it fixed this (opening EMPTY/PARTICLES pages threw on a null region list; save and export dropped such layers). Verify on a format-5 page before writing code; it may only need closing.\n\nDone (fedora-parallax-editor-5): Already fixed by r27 (1e1cc2b); verified, no code change. Commit 86695b7 adds only the probe, tools/r30-empty-layer-probe.txt.",
+   "tags": [
+    "editor",
+    "format"
+   ]
+  },
+  {
+   "ref": "r1",
+   "title": "Write the agent guide this repo has never had",
+   "detail": "There is no CLAUDE.md, no AGENTS.md, no .cursorrules. Every trap an agent needs is real but scattered: MEMORY_LANE.md (history, sections 4/5/6), README.md (concepts and the settings tables), RELEASING.md (branches), and the board's own context packs.\nA guide here should be short and should NOT restate the README. What it must carry: the module split (core = runtime, editor = the tool, demo = the example), the rule that Kryo registration order is a file format (GVars_Serialization), that core is release=11 while everything else is 17, that the editor's state is static GVars_* with one project at a time, that compiling proves nothing in the editor package (run it), and the gates — ./gradlew build, ./gradlew :core:test, ./gradlew :editor:run, ./gradlew :demo:run.\nSame standard as the context packs: name files and commands, never advice. If a line would be true in any repo, cut it.\nNote (fedora1-parallax-4): Retagged from #docs (dropped by d2/B) to #runtime #format #editor #build. Each thing this guide must carry comes out of one of those packs: module split, release=11 vs 17 and the Gradle gates (build); Kryo registration order (format); static GVars_* and 'compiling proves nothing, run it' (editor); core = runtime, :core:test and :demo:run (runtime). The guide condenses those packs, so whoever writes it needs all four loaded — that is the gate, deliberately. #assets and #project-io are left off because r3 asks for nothing from them; add them if the guide grows to cover flatten/",
+   "tags": [
+    "build",
+    "editor",
+    "format",
+    "runtime"
+   ]
+  },
+  {
+   "ref": "r28",
+   "title": "Sequence layers phase 3: the editor edits a sequence layer's segments, weights, seed and cycle length",
+   "detail": "Wanted (docs/sequence-layers.md, phase 3): on a SEQUENCE layer, a segment list (add/remove/reorder atlas regions), one weight per segment, the seed (with a re-roll), the cycle length N with 'repeats every X screens', and the preview drawn from the page's seed. Every new control has a setName (driver/Names). Done when: ./gradlew :editor:run (cage) builds a sequence layer, exports it, and the exported page draws the same cycle in :demo:run; renders attached; README layer-settings table updated. Runs after the repo split (r132), in JavaKhanStudio/JKS_Tools2D_ParallaxEditor. Out of scope: runtime. Discovered while: r147, raising the plan.\nNote (fedora-parallax-editor-3): From r27 (1e1cc2b): today a SEQUENCE layer opened in the editor is SAVED WRONG. Utils_Saving.buildWholePageForExport / buildWholePageAsProjectForSaving still loop over GVars_Vue_Edition.regionsOf(layer) and write ONE MODEL PER SEGMENT REGION (each a copy of the layer, regionName = the segment's), and GVars_Vue_Edition.setPage registers every segment region under the model's regionName. r27 left SEQUENCE alone: VE_Tab_Texture_Kind shows it in the kind box disabled. Fix both loops as part of this task: one model per layer, segments from getSequenceSegments().\nNote (fedora-parallax-editor-3): handed over — r46 (SEQUENCE saved as one layer per segment, Utils_Saving loops) before or inside r28.\nNote (fedora-parallax-editor-4): Plan: VE_Tab_Texture_Kind gets a SEQUENCE section (segment rows: name, weight spinner, up/do",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r46",
+   "title": "Saving a SEQUENCE layer from the editor writes one layer per segment",
+   "detail": "WHAT IS WRONG. Open a page holding a SEQUENCE layer (library core/test-data/sequence) and save or export it: Utils_Saving.buildWholePageForExport and buildWholePageAsProjectForSaving (editor/src/jks/tools2d/parallax/editor/vue/edition/utils/Utils_Saving.java, the loops over GVars_Vue_Edition.regionsOf(layer)) write ONE Parallax_Model PER SEGMENT REGION, each a full copy of the layer with regionName set to that segment. GVars_Vue_Edition.setPage also registers every segment region in imageRef under the model's own regionName/regionPosition. The page comes back with N sequence layers instead of one, or fails.\nWANTED. A SEQUENCE layer saves as one model: regionName/regionPosition from the first segment (or null), segments from getSequenceSegments() (Utils_Page.buildFromPage already copies them). setPage registers each segment region under its own Sequence_Segment name/position. Loose (outside) images in a sequence are out of scope unless r28 needs them.\nPROOF. Through tools/driver-probe.sh, open a copy of a core/test-data/sequence page, save .plaxpj and export .jplax into editor/build, reopen both: same layer count and segments (compare the JSON).\nOUT OF SCOPE. Editing segments (r28). r28 carries a note pointing here; doing it inside r28 is fine.\nDiscovered while: r27, making save/export carry EMPTY and PARTICLES layers (they had the same per-region loop and were dropped).\nNote (fedora-parallax-editor-3): handed over — r46 (SEQUENCE saved as one layer per segment, Utils_Saving l",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r27",
+   "title": "Effect layers phase 4: the editor edits EMPTY, PARTICLES and SHADER layers and marks the engines that will not draw them",
+   "detail": "Wanted (docs/effect-layers.md, phase 4; r146 asks the editor to make explicit what an engine cannot draw): a kind selector on a layer; EMPTY: its name; PARTICLES: pickers for the libGDX .p and the Godot scene, live libGDX preview; SHADER: the effect list and its sliders. Next to the kind selector a row of marks per engine (libGDX, browser, Godot, jME) read from core's EffectSupport (phase 1, r178), and a mark on any control an engine ignores; a PARTICLES layer with no Godot file marks Godot missing, jME always 'not drawn'. Every new control has a setName (driver/Names). Done when: ./gradlew :editor:run (cage) shows each kind, with renders attached for each; README layer-settings table updated. Runs after the repo split (r132): the editor lives in JavaKhanStudio/JKS_Tools2D_ParallaxEditor then, change it there. Out of scope: the runtime of any kind. Discovered while: r146, raising the plan.\nNote (fedora-parallax-editor-3): Started: reading core's Parallax_Model/EffectSupport and the editor's layer panels to size it.\nNote (fedora-parallax-editor-3): Found: opening core/test-data/particles/p01.jplax NPEs in GVars_Vue_Edition.setPage (getTexRegion() null for PARTICLES/EMPTY); Utils_Saving would also drop such layers silently (loops over regions). Fixing as part of this. Plan: kind SelectBox rebuilds the layer via core's factories, engine marks row from EffectSupport, name field, particle path fields + pickers (live libGDX effect via ParallaxLayer.setParticles), shader effect + 3 ",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r44",
+   "title": "Start screen chooser: its path field, list and back/up/select buttons have no setName",
+   "detail": "WHAT IS WRONG. AGENTS.md: every control has a setName (driver/Names). FC_List.buildWidgets (editor/src/jks/tools2d/filechooser/FC_List.java ~:255-270) builds pathField, the contents List, and the choose/open/cancel/back/parent buttons without one; only the whole chooser is named (\"selection.chooser\", Vue_Selection.java:~71). The driver reaches the buttons only by text:back / text:up / text:select, and cannot reach a list row or the path field at all, so a script cannot browse to a chosen folder (it can only \"select\" the first row).\nWANTED. Names for those widgets (e.g. derived from the chooser's own name, via driver/Names), and a driver way to pick a list row (set selection.chooser.list INDEX or by text).\nPROOF. tools/driver-probe.sh: set the path field to editor/Files/Demos + Enter or set the list to \"Demos/\", select, shot shows Demos content.\nOUT OF SCOPE. Chooser behaviour and layout.\nDiscovered while: r42, proving the chooser after removing its unused accessors (tools/r42-chooser-probe.txt had to work around it).\n\nDone (fedora-parallax-editor-3): Commit 02e5617 (not pushed). FC_List overrides setName to name its widgets from its own name: selection.chooser.path / .list / .select / .open / .cancel / .back / .up (open and cancel are not on screen here: directories not choosable, not cancelable). EditorDriver \"set\" now takes a scene2d List, by index or row text, with \"err no item\" replies; javadoc updated.\nProof (tools/r44-chooser-names-probe.txt via tools/driver-probe.sh): ",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r42",
+   "title": "Copied widgets: drop the getters and setters nobody calls in FC_List, FileChooser, JksTextureList, JksCheckBox",
+   "detail": "WHAT IS WRONG. Widgets copied from dermetfan's libgdx-utils and from scene2d carry the API of a library, and the editor calls little of it. One word hit across editor/ and demo/ = the declaration only:\n  - editor/src/jks/tools2d/filechooser/FC_List.java:399-~560: get/set for backButton, cancelButton, chooseButton, contents, contentsPane, fileHistory, openButton, parentButton, pathField, and getDirectory (about 150 lines of the 699, with their javadoc). Keep get/setStyle if called (check), and keep the `@author dermetfan` comment at :571.\n  - editor/src/jks/tools2d/filechooser/FileChooser.java: getFileFilter (:43), isShowHidden, setShowHidden. showHidden itself stays if handlingFileFilter (:16) reads it; it can become a constant false or go with the check, say which.\n  - editor/src/jks/tools2d/libgdxutils/JksTextureList.java: clearItems (:309), getItemHeight (:331). NOT setCullingArea (:339): it implements Cullable.\n  - editor/src/jks/tools2d/libgdxutils/JksCheckBox.java:81 getImage.\nRe-run the word count before deleting: a method may be reached by reflection or a lambda the grep missed (`git grep -w NAME`). Fields only the deleted accessors wrote become final.\nOUT OF SCOPE. NOTICE and README Credits (never trim, AGENTS.md \"Credits\"); behaviour; the Utils_Scene2D copy; FC_List.buildWidgets (50 lines, plain layout).\nPROOF. ./gradlew build; then tools/driver-probe.sh opening the selection screen's file chooser (Vue_Selection.java:51 builds it): browse into a folder, back, parent",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r26",
+   "title": "Editor: 27 anonymous ChangeListener classes, 6 lines each for one statement; one onChange helper",
+   "detail": "WHAT: `x.addListener(new ChangeListener() { @Override public void changed(ChangeEvent event, Actor actor) {...} });` is written 27 times in editor/src/jks/tools2d/parallax/editor (`git grep -c 'new ChangeListener()' -- editor`): VE_Center_ParallaxShow 7, VE_Options 4, VE_Tab_Meta_ConfigParallax 4, VE_Tab_ColorConfig 3, VE_Tab_Meta_ConfigApplication 3, VE_Tab_Texture 2, Vue_Selection, VE_Tab_Meta_Informations, VE_Tab_TextureList_Adding, VE_Tab_TextureList_DefaultValue 1 each; almost every body is one statement. It is most of why VE_Center_ParallaxShow.buildOptions (:138) is 105 lines and the VE_Options constructor (:31) 99.\nBetter: `Utils_Interface.onChange(Actor actor, Runnable action)` (editor/src/jks/tools2d/libgdxutils/Utils_Interface.java) adding the ChangeListener, called with a lambda: `onChange(resetSpeedX, () -> parallaxSpeedXSlider.setValue(0));`. A body that reads `event` or `actor` (check each: e.g. cancel() or the actor cast) keeps its ChangeListener, or gets a Consumer<Actor> overload if there are several.\nLeave alone: editor/src/jks/tools2d/filechooser/FC_List.java (adapted from dermetfan's libgdx-utils, NOTICE) and JksNumberSlider's own listener.\nPROVES IT: `./gradlew :editor:compileJava`; no editor tests exist, and a compiling control is not a working one (AGENTS.md): after `./gradlew :editor:installDist`, drive every changed control through tools/driver-probe.sh by its setName (driver/Names; `list` prints them), e.g. preview.play, preview.speedX.reset, previe",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r25",
+   "title": "Editor: the tabbed pane whose tab fills a container, written out four times; one Utils_Interface helper",
+   "detail": "WHAT: four panels build a TabbedPane and a VisTable container with the same TabbedPaneAdapter (switchedTab: container.clearChildren(); container.add(tab.getContentTable()).expand().fill()), 10 lines each: editor/src/jks/tools2d/parallax/editor/vue/edition/VE_Tab_AControl.java:25-37, VE_Tab_Meta.java:22-32, VE_Tab_TextureList.java:24-34, VE_Tab_ColorConfig.java:46-58 (jscpd pairs them). VE_Tab_Meta and VE_Tab_TextureList are otherwise the same class with other tabs and another title.\nBetter: one helper next to Utils_Interface.buildTabbedPane (editor/src/jks/tools2d/libgdxutils/Utils_Interface.java:108), e.g. `TabbedPane buildTabbedPane(Skin skin, VisTable container)` that adds the listener, used by all four. Keep each panel's Names.tabs(...) call and every setName: --driver-port scripts find tabs by those names (AGENTS.md \"Editor\").\nPROVES IT: `./gradlew :editor:compileJava`; there are no editor tests, so drive it: `./gradlew :editor:installDist`, then `tools/driver-probe.sh < tools/r36-tab-reclick.txt` and `< tools/r33-textures-tab.txt` (their headers say what they show) before and after, with a `shot` of each tab; the shots match, and every tab of the four panes still switches (attach the shots to the card).\nOUT OF SCOPE: the anonymous ChangeListeners in the same files (next ticket), the look of any tab.\nDiscovered while: r148, refacto day, jscpd scan.\n\nDone (hal-fedora-parallax-40): Commit 28265cb (not pushed). New Utils_Interface.buildTabbedPane(skin, container) adds the s",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r24",
+   "title": "driver-probe.sh's BindException check runs before its own editor can have logged one",
+   "detail": "WRONG: tools/driver-probe.sh (r43, ef0586a) checks the port before launching, then waits in a loop that breaks as soon as port_open succeeds, then greps editor/build/driver-probe.log for BindException. In the race r43 meant to catch (another editor takes the port between the check and our bind), port_open succeeds at once because the OTHER editor answers, so the grep runs a second or less after launch, before our JVM has started and logged the BindException. The script then drives the other editor, which is what r40 did.\nFIX SHAPE (a suggestion): know that it is our editor answering, not just any editor. For example, wait until the log shows that our driver is listening (or shows BindException), or have EditorDriver answer with its PID and compare it to $EDITOR_PID.\nDONE WHEN: an editor started on port P just after driver-probe.sh's pre-check (e.g. a stub `nc -l P` started in the gap, or a sleep hook) makes driver-probe.sh exit 3 and send nothing.\nOUT OF SCOPE: the pre-launch check, which works; EditorDriver unless the fix needs it.\nDiscovered while: r72, grading r43's close for Simon's review.\n\nDone (juno-fedora-parallax-18): ba77d4f (develop, not pushed). driver-probe.sh no longer trusts an open port: after launch it waits for its own editor's log line \"[EditorDriver] listening on 127.0.0.1:PORT\" and exits 3 on \"[EditorDriver] cannot listen on port PORT\" (exit 1 if neither appears in 60 s or the editor dies). EditorDriver unchanged.\nProof: tools/r74-probe-race.sh — EDITOR_B",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r21",
+   "title": "driver-probe.sh drives whatever editor already holds its port",
+   "detail": "WHAT: tools/driver-probe.sh starts its editor, then connects to 127.0.0.1:$PORT (default 47777) as soon as anything answers. If another session's editor already listens there, the new editor logs `java.net.BindException: Address already in use` (editor/build/driver-probe.log) and the script sends every command to the OTHER editor. In r40 my probe set options.path/name, ticked F.Export and flattened a winter project that was not mine (it was open in someone else's editor), then took screenshots of it.\nWANTED: the script refuses to start (exit non-zero, clear message) when the port is already open before it launches, or picks a free port by default.\nDONE WHEN: with one probe running, a second `tools/driver-probe.sh` on the same port exits with an error and sends nothing.\nOUT OF SCOPE: EditorDriver itself.\nDiscovered while: r40 (mipmapped atlas export), first probe run.\n\nef0586a (not pushed). tools/driver-probe.sh now checks the port before it launches anything: if something already answers on DRIVER_PORT it exits 3 with \"port N is already open (another editor?): refusing to drive it\" and sends nothing. The launch writes no log either. After the wait it also exits 3 if its own editor logged a BindException, which catches the race where another editor takes the port between the check and the bind. The wait loop now stops early when the editor dies. Verified: probe 1 on 47791 (list, sleep 25) ran to exit 0; a second probe on 47791 started during that sleep exited 3 with the messag",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r20",
+   "title": "Profile the editor with a many-layer page: r37 measured only the runtime",
+   "detail": "WHAT: r37 (\"optimization pass... stress test with very complex multi-layer parallax\") measured the runtime only (core: CPU < 1 ms/frame at 400 layers, fill-rate bound, FrameAllocationTest gates per-frame allocation). The editor was not profiled: its panels, the layer list and preview may scale badly with hundreds of layers (e.g. one widget row per layer rebuilt on every change, vue/Vue_Edition rebuilding panels).\nHOW: build a project with 200+ layers (ParallaxStress in demo/src generates such pages from Parallax_Model entries; the editor project format needs its own route, see README \"File formats\"), open it with `./gradlew :editor:run`, and time: opening, selecting a layer, dragging a slider, adding/removing a layer, export. A JFR recording (`-XX:StartFlightRecording`) points at the hot spots.\nDONE WHEN: the timings are in the note, and each real hot spot is fixed or queued as its own task. Nothing is changed on a guess.\nOUT OF SCOPE: core runtime (done in r37, commit f4b643c), atlas mipmaps (r40), stripped-region drawing (r41).\nDiscovered while: closing r37.\n\nCommit 5bd2e19 on develop (not pushed). The editor compiles (:editor:jar), and the new driver `fps` command and probe options were used live for every number below.\n\nTIMINGS: measured through the driver, headless in cage on the NVIDIA RTX 5060 (r37's runtime numbers were on the Intel iGPU, so don't compare the two). Projects were generated by tools/stress-project.py from the Hiver sample.\n- Open: 278 ms at 7 layers, 27",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r19",
+   "title": "Driver: a top-level tab button loses its name after a tab switch (click tab.textures, then tab.controls: tab.textures is not found)",
+   "detail": "WRONG: after switching tabs, EditorDriver cannot find a top-level tab button it found a moment before. Headless (tools/driver-probe.sh, Files/Demos/OneNight.plaxpj, 1280x720), in order:\n  bounds tab.controls -> ok 0 0 67 25\n  click tab.textures  -> ok 191 13\n  bounds tab.textures -> err no control on screen: tab.textures\n  click tab.controls  -> ok 34 13\n  bounds tab.textures -> err no control on screen\n  click tab.textures  -> err no control on screen\n  bounds tab.controls -> err no control on screen\nA few commands later, `click tab.textures` works again. `list` shows the same thing: the clicked tabs drop out of the list. Suspect: Names.tabs (editor/src/jks/tools2d/parallax/editor/driver/Names.java:33) names the TabbedPane's button actors once, and VisUI's TabbedPane swaps or re-adds those buttons when the active tab changes, so the new ones have no name. The probe input is presenter's tools/tab-reclick.txt (presenter commit that closes presenter r7).\nDONE WHEN: that sequence answers ok for every line, and `list` shows all four tab.* buttons whichever tab is active. The same holds for the sub-tab buttons (tab.addTexture.addingNew, tab.controls.parallax, tab.background.topSquare...).\nOUT OF SCOPE: the presenter side. Until this is fixed, the presenter script puts `wait tab.X` before going back to a tab.\nDiscovered while: presenter r7, listing the controls to write the parallax editor video's script.\n\nCommit c312837 (unpushed).\n\nCause: the names were never lost. VisUI's Tabbed",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r18",
+   "title": "Background tab scrolls with the mouse wheel only after a click inside it",
+   "detail": "WRONG: the Background tab's scroll panes (editor/src/jks/tools2d/parallax/editor/vue/edition/VE_Tab_ColorConfig.java:127-135, buildColorPalette) scroll with the mouse wheel only after a click inside them. libGDX's ScrollPane sets the stage's scroll focus on touchDown only, and with no scroll focus Stage.scrolled fires on the root, which never reaches the pane.\nFIX SHAPE: the one VE_Tab_Texture got in 9e2f2c1 (r33), a capture listener that takes scroll focus on enter (pointer -1) and gives it back on exit. Consider moving it to one shared helper that both tabs use, e.g. in libgdxutils/Utils_Interface.\nDONE WHEN: headless at 1280x720 (tools/driver-probe.sh), `click tab.background` then `wheel <a control inside the Top Square tab> 10` moves that control's y in `list`, with no click first. Attach the shots.\nOUT OF SCOPE: the Textures tab (done in r33), VisUI's scaleFactor.\nDiscovered while: r33, which made the Textures tab scroll and found the wheel did nothing until a click.\n\nCommit 1 of r35 (unpushed; hash below). The scroll setup is now one helper, Utils_Interface.buildVerticalScroll, and both VE_Tab_ColorConfig and VE_Tab_Texture use it. It copies the style, turns off flick scrolling, takes scroll focus when the mouse hovers the pane and gives it back when it leaves, and leaves the wheel over a JksNumberSlider to EditorInputProcessus.\n\nProved headless at 1280x720 with `tools/driver-probe.sh Files/Demos/OneNight.plaxpj < tools/r35-background-wheel.txt`, with no click first:\n- ",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r17",
+   "title": "Color picker fields clip their values: hex FF8800FF shows as 800FF, 255 as 55, 100 as 00",
+   "detail": "WRONG: in the Background tab (vue/edition/VE_Tab_ColorConfig.java, ExtendedColorPicker), the hex and H/S/V/R/G/B/A text fields are too narrow at VisUI scaleFactor 0.6 (gvars/GVars_UI.init) and show the END of their value. Set #ff8800 on background.topSquare.topColor and the hex field reads \"800FF\", R reads \"55\", S reads \"00\". See driver-color.png attached on r32. It will show in the presenter's video.\nDONE WHEN: a headless shot (tools/driver-probe.sh: click tab.background, set background.topSquare.topColor #ff8800, shot) shows the full values. Attach it.\nOUT OF SCOPE: changing VisUI's global scaleFactor (the whole layout depends on it: see the #editor pack). Copy a style rather than mutating a shared one.\nDiscovered while: r32 (driver port), checking the color picker could be set over the driver.\n\nCommit f88541c (unpushed). VE_Tab_ColorConfig.fitFields now widens every text field in the ExtendedColorPicker so it holds its longest value. The width is measured in the field's own font: the widest hex digit × (8 for the hex field, 3 for a channel), plus the background padding and room for the cursor. Only cell widths change: VisUI's scaleFactor and the shared styles are untouched.\n\nProved headless with `tools/driver-probe.sh Files/Demos/OneNight.plaxpj < tools/r34-color-picker.txt`, which clicks tab.background, sets topColor to #ff8800 and takes a shot. The fields now read Hex FF8800FF, S 100, V 100, R 255, G 136 and A 255, and the bottom picker's hex reads A4C1EDFF. The picker g",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r16",
+   "title": "Textures tab overflows a 720-pixel-high window: its tab bar is pushed off the top and Pad Y is cut at the bottom",
+   "detail": "WRONG: at 1280x720 (cage's headless size, and allowed by Launcher_Editor's 1100x680 minimum), the Textures tab (vue/edition/VE_Tab_Texture.java) is taller than the window. `list` over --driver-port gives tab.textures at y=-3 once it is open (y=0 on the other tabs), and the Pad Y row is clipped at the bottom. See the attached render on r32 (driver-after.png). The Background tab solves the same problem with a ScrollPane (VE_Tab_ColorConfig.buildColorPalette).\nDONE WHEN: at 1280x720 the Textures tab keeps its tab bar at y=0 and every slider is reachable (scroll or tighter rows). Prove it headless with tools/driver-probe.sh: `click tab.textures`, `list`, `shot x.png`, and attach the shot.\nOUT OF SCOPE: the other tabs, VisUI's global scaleFactor.\nDiscovered while: r32 (driver port), driving the editor headless for the presenter video tool.\nNote (cass-fedora1-parallax-15): Plan: wrap VE_Tab_Texture's container in a ScrollPane (copied style, no flick, vertical only), as VE_Tab_ColorConfig does. Baseline shot first.\n\nCommit 9e2f2c1 (unpushed). The Textures tab (VE_Tab_Texture) now scrolls inside a ScrollPane, the same way the Background tab does.\n\nProved headless at 1280x720 with `tools/driver-probe.sh Files/Demos/OneNight.plaxpj < tools/r33-textures-tab.txt`:\n- tab.textures is at y=0 (it was -3).\n- `wheel texture.selectFirst 10` scrolls the tab by 50 px, and Pad Y then ends at 718, inside the window.\n- `wheel texture.decalX 1` changes Decal X from 60 to 60.5 and does not scroll the ",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r15",
+   "title": "Let an outside driver name, locate and trigger the editor's controls (for the presenter video tool)",
+   "detail": "WANTED: the presenter board (~/Documents/GitHub/presenter, `atelier --project presenter`) makes narrated videos of the editor. Its drive adapter must click a button, set a slider and draw a highlight around a control. scene2d has no OS-level widgets, so the editor must expose them itself. Today `grep -rn \"setName(\" editor/src` returns 0: no control has a name.\nDO: (1) give every interactive control in vue/Vue_Selection, vue/Vue_Edition and vue/edition/VE_*.java a stable actor name (setName), e.g. \"texture.speed\", \"meta.save\". (2) Behind an opt-in launch flag only (e.g. --driver-port=N in mains/jks/tools2d/parallax/Launcher_Editor.java; off by default), add a localhost line protocol: `list` (names), `bounds <name>` (screen rect in window pixels, y down), `click <name>`, `set <name> <value>`, `open <file.plaxpj>`. Commands run on the render thread (Gdx.app.postRunnable). If the presenter's drive ticket has already written a protocol in its repo, match that instead.\nDONE WHEN: with the editor running with the flag, a shell client (nc) lists the names, gets the bounds of a button, and clicks it with a visible effect. Attach a screenshot. Add the flag to README.md.\nOUT OF SCOPE: recording, TTS, highlights (all presenter-side). No behaviour change without the flag.\nDiscovered while: routing r31 (the video presentation). Simon chose its own repo and board (answer A).\nNote (cass-fedora1-parallax-14): Belongs with r31 (the video presentation tool, now its own board 'presenter'). prese",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r14",
+   "title": "We need to make a video presentation of this tool, showing all it can do. I want an AI to make said video, creating a clean script, synchronizing said script with actions takken in the editor, with moment to highlight elements, like the button. Showing good pratice, showing errors, using the exemples i have already made. This is a complex task, and the tool resulting should have it's own board, and become flexible enough that it can do the presentation with multiple type of project. It will need some clean TTS (Use kokoro, make it compatible with elevenLab) It will need to be able to clearly prepare a script and split that script into a few chapters to make modifications easier. It will need a UI for me to navigate the script before. It will be higly relying on an agent connecting the dots, but do try to use simple code when possible, as to not waste tokens on simple task that do not need to be done by you. \n\nThis ticket should results in a new board full of tickets, that use this project as a starting exemple.",
+   "detail": "Note (cass-fedora1-parallax-14): Routed #editor: the only part of this that lives in parallax is driving the editor (scripted actions, named widgets to highlight, capture). The tool itself (script + chapters, script-browsing UI, Kokoro/ElevenLabs TTS, sync, render) is its own project, and you want it reusable across projects. No board for it exists yet (checked the project list); creating a repo and a board is yours to decide, so I'm not guessing a name or location.\nNote (cass-fedora1-parallax-14): If A or B: say the name you want in your answer (default: presenter).\nNote (cass-fedora1-parallax-14): Answer A. Creating ~/Documents/GitHub/presenter (git init, README with this brief, .atelier/packs.toml) and projects/presenter.toml in atelier, then seeding its first tickets. Reuse found: OnceUponATime already runs Kokoro (docker image zacksock/kokoro, host :8880, POST /tts {text,en_voice,speed}) and has an ElevenLabs provider behind one TtsCapability interface — backend/src/main/java/com/fod/ai/tts/.\n\nAnswer A, set up. New repo ~/Documents/GitHub/presenter (commit 29f2752: README with your brief verbatim + the five parts, .atelier/packs.toml with a DRAFT pack per tag, .gitignore for linked skills). Board connected: atelier projects/presenter.toml (commit 81df744), kind tool / subkind video, tags script, voice, drive, render, desk; routing probed (a #voice ticket was refused to --tags script and served with its pack to --tags voice); board skills installed.\nSeeded: presenter r2 (",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r12",
+   "title": "Loose images stored by relative path do not hot-reload after the project is reopened",
+   "detail": "Seen while testing r16 (fedora1-parallax-8). Reopening a .plaxpj whose loose image is stored relative (e.g. 'OneNight_images/grass.png', as 'Copy loose images next to the project' writes it) logs '[FileWatchService] Cannot watch <WORKING DIR>/OneNight_images/grass.png ... NoSuchFileException'. Cause by reading: VE_Center_ParallaxShow.loadOutsideImages loads the texture through EditorPaths.resolveProjectFile(source.url), but then calls Utils_LoadingImages.registerOutsideImage(source.url, region), which does new WatchedImage(path, region) with the UNRESOLVED relative url, so the watcher looks in the editor's working directory. The image displays, but saving it from an image editor no longer updates the layer. Fix: watch the resolved file, keep the url as the key. Test for real: reopen, save the PNG, watch the layer change.\n\n7a15e00 (develop, unpushed). Utils_LoadingImages.registerOutsideImage now watches EditorPaths.resolveProjectFile(path) (the same resolution the texture was loaded with); activeFileWatching/outsideTextureReserve stay keyed by the saved path, so renameOutsideImage/removeFile are unaffected. Dropped PNGs are absolute: unchanged. VERIFIED in the hidden editor (script /tmp/r16h/src/r5/R25.java): a .plaxpj with loose 'rel_images/red.png' reopened, the PNG overwritten with a 128x32 blue one -> layer texture 64x32 -> 128x32 and the preview turns blue; the SAME script on the unfixed code stays 64x32 red with '[FileWatchService] Cannot watch /tmp/r16work/rel_images/re",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r7",
+   "title": "Save project into a folder without its atlas silently makes a project that reopens empty",
+   "detail": "Found by the r5 sweep. Open Files/Demos/OneNight.plaxpj, set Project Path to another folder, Save project: 'The project has been saved'. Reopening that .plaxpj shows 'Could not load the parallax. Is its atlas in the same folder?' (GdxRuntimeException: <folder>/OneNight.atlas not found) and opens with 0 layers (screenshot 70_reopened_project on r5). A page names its atlas by file name only, so saving anywhere else breaks it, and saving again from the empty view would overwrite the project with nothing. Needs a decision: warn at save time, copy the atlas, or store a relative path. The last one touches #format.\nNote (fedora1-parallax-6): Investigated. Cause: .plaxpj stores pageModel.atlasName bare ('OneNight.atlas'); WholePage_Model.preload(relativePath) opens relativePath + '/' + atlasName, relativePath = the folder the .plaxpj was opened from. Found, run in the harness: EVERY autosave of an atlas project has the same bug - autoSave() makes loose image paths absolute but leaves atlasName bare, and Files/AutoSave has no atlas, so autosaves reopen with 0 layers (render attached). Also by reading: saving elsewhere breaks RELATIVE loose-image paths the same way (resolved against the new folder on reopen). Note .plaxpj is the editor's Jackson JSON, not the Kryo .plax format, and preload already accepts a path in atlasName ('../Demos/OneNight.atlas' would load) - so a relative/absolute atlas path in the PROJECT file needs no .plax format bump, as long as the export keeps the bare nam",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r11",
+   "title": "After a window resize, the preview draws layers outside its frame",
+   "detail": "Found while checking r17, and present BEFORE the r17 change too (compare /tmp renders attached to r17: 1100_Textures before/after). After Gdx.graphics.setWindowedMode(1152x720 or 1100x680) on OneNight.plaxpj, clouds and trees draw above and right of the preview frame, and a lighter inner rectangle shows where the old frame was. Seen in the hidden-window harness (60 frames after the resize, persisting across tab switches); not checked whether the editor STARTED at that size shows it, nor on a real window drag. Likely the camera/viewport or the squares keep the pre-resize size (Vue_Edition.resize vs rebuildInterface).\nNote (fedora1-parallax-7): Reading r17's 1100 render: layers are inside the new frame; the lighter rectangle is the gradient squares at 85% of the frame (1100/1300, 680/800), so square size vs ShapeRenderer projection are out of step. Instrumenting in the harness.\nNote (fedora1-parallax-7): ROOT CAUSE: Parallax_Heart.resize (core) and Vue_Edition.resize edit shapeRender.getProjectionMatrix() in place without updateMatrices(); libGDX ShapeRenderer recomputes its combined matrix only when dirty, so after the first begin() the resize is ignored: squares get the new pixel size but draw with the startup projection. Runtime bug too (any game that resizes). Fix + test in core.\n\n62a64f5. Not layers out of frame: layers were inside it; the gradient SQUARES drew at the pre-resize projection (smaller rect after shrinking). Cause in CORE: Parallax_Heart.resize set shapeRender",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r10",
+   "title": "Background tab content is taller than a 1100x680 window and covers its own tab bars",
+   "detail": "Found while checking r17. At the minimum window 1100x680, Controls > Background (two color pickers) is taller than the window: the Top Square / Bottom Square bar is pushed up over the main tab bar and 'Is active' is cut (render 1100_Background on r17 is at /tmp/r17after/1100_Background.png, attached as below). Fine at 1152x720. Probably the VE_Tab_ColorConfig layout needs to fit the height or scroll.\n\nCommit 8e17e22 (develop, unpushed). VE_Tab_ColorConfig.buildColorPalette wraps each square's content in a ScrollPane: vertical only, flickScroll off (else dragging a picker scrolls), overscroll off, bars always shown, style = COPY of the skin ScrollPaneStyle with background=null (the default draws a blue frame round the whole panel). Verified in the hidden-window editor with OneNight.plaxpj: at 1100x680 the Top Square tab sits 630..655 and 'Is active' tops out at 630 (before: overlapping the main bar); click + wheel scrolls to maxY (22 px); dragging the top picker's hue bar changed topSquare.topColor 12537cca -> 627d13ca with scrollY unchanged. At 1300x800 it fits, no scrolling. Wheel needs a click in the pane first (libGDX gives scroll focus on touchDown) - same as the texture list. Seen, not touched: the picker's number/hex fields clip their text at every size (e.g. '37CCA' for 537CCA at 1300; also in r17's renders).",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r9",
+   "title": "'Copy loose images next to the project' asks, then silently does nothing when there are no loose images",
+   "detail": "Found by the r5 sweep. On a project with no loose PNG (OneNight.plaxpj), the button opens 'Copy the loose images into \"<name>_images\"...?' Yes/No, and Yes returns immediately (Utils_Saving.packTextures exits when outsideInfos is empty), with no message. Disable the button or say there is nothing to copy.\n\nCommit 754f211 (develop, unpushed). Chose the message over disabling the button (disabling would have to track every add/remove/flatten of an image). VE_Tab_Meta_ConfigParallax's button checks Utils_Saving.hasLooseImages() first and shows 'There is nothing to copy: every image of this project comes from its atlas.' (Dialogs OK, title Packing); packTextures' own early return shows the same message instead of returning silently. Verified in the hidden-window editor: OneNight.plaxpj -> message, no Yes/No, output folder empty; after dropping a PNG -> the question is asked, Yes -> 'Images copied to /tmp/r18out/r18_images' containing loose.png. Renders + log attached.",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r8",
+   "title": "At 1152x720 the tab bars wrap and overlap the INFOS text",
+   "detail": "Found by the r5 sweep. Controls > Application > Window size offers 1152x720 (the minimum window is 1100x680). After Apply at 1152x720, the main tab bar wraps 'Background' onto a second row, and the INFOS/Parallax/Application sub-tab bar overlaps the top of the help text (screenshot 71_after_apply_1152x720 on r5). The panel width is Gdx.graphics.getWidth()/3.9, too narrow for the four tab titles.\n\nCommit 0ccce66 (develop, unpushed). GVars_Vue_Edition.buildSizes: left panel = max(width/3.9, MIN_LEFT_PANEL_WIDTH=320) - measured: the four main tab titles take 314 px in the (unscaled) skin font, so it wrapped below a 1225 px window. Also size_Bloc_Parallax = width - panel instead of width/4*3: with the floor, 320+825 overran 1100 px and hid the full screen button (it already overhung 8 px at 1300; now fully inside). Verified in the hidden-window editor with OneNight.plaxpj, resizing to 1152x720 and 1100x680 and clicking all four main tabs: every tab bar rows=1 (before: main bar rows=2 at both sizes), INFOS text clear, full screen button inside. Renders before/after + log attached. At 1100x680 the preview is 38 px narrower than before. Filed two things seen along the way, both NOT caused by this change: r19 Background tab taller than a 680 px window (covers its tab bars; fine at 720), r20 preview draws layers outside its frame after a resize (visible in the BEFORE render too).",
+   "tags": [
+    "editor"
+   ]
+  },
+  {
+   "ref": "r6",
+   "title": "Export with LibGDX and JSON both unticked reports success and writes nothing",
+   "detail": "Found by the r5 sweep. Utils_Saving.savingExport writes nothing when both VE_Options.formatLibGDX and formatJson are unchecked, but still shows 'Successful export of <name> as' with an empty format list (screenshot 33_export_no_format on r5). It should refuse, or say no format is selected.\n\nCommit 247d53e (develop, unpushed). Utils_Saving.saving_Parallax (the export button's entry) now returns with Dialogs.showOKDialog 'Export' / 'Nothing exported: no format is selected. Tick LibGDX (.plax) or JSON (.jplax).' when both are unticked. Placed BEFORE the flatten decision, not in savingExport: with F.Export or a loose image, the flatten would pack a new atlas and rewrite the project, then export nothing. savingExport itself is unchanged (its only callers go through saving_Parallax). Verified in the hidden-window editor on a copy of OneNight.plaxpj: both off -> message, output dir empty; both off + F.Export -> same message, no flatten dialog, dir empty; LibGDX on -> 'Successful export of r15plax as .plax' and r15plax.plax written. Renders + log attached. Did not reopen the .plax (export path itself untouched).",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r5",
+   "title": "Start screen 'back' from the first folder jumps to the home directory",
+   "detail": "Found by the r5 sweep. FC_List seeds fileHistory with Gdx.files.getExternalStoragePath() (the user home) before Vue_Selection calls setDirectory(Files). So 'back' right after startup leaves editor/Files for the home folder instead of doing nothing. Reproduced: path /tmp/r5work/Files -> back -> /home/<user>.\n\nCommit f9be29e (develop, unpushed). New FC_List.setStartDirectory(dir): clears fileHistory, then setDirectory(dir) - so the history is [Files] instead of [home, Files]. Vue_Selection calls it instead of setDirectory. Kept the home seed in FC_List's field initialiser (a chooser nobody positions still has somewhere to show). Verified in the hidden-window editor: back at startup stays in Files; Files -> Demos -> Day then back x3 goes Demos, Files, Files. Noticed, not fixed: setDirectory pushes onto the history even when re-entering the current folder, and pushes the FILE rather than its folder when given a file (back then re-lists the same folder) - harmless on the start screen.",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r4",
+   "title": "Start screen 'cancel' button does nothing",
+   "detail": "Found by the r5 sweep. The FC_List under the start screen shows a 'cancel' button whose listener calls FileChooser_Listener.cancel(), and Vue_Selection's cancel() is empty. Clicking it changes nothing (screenshot attached to r5: 05_start_after_cancel). Decide what it should do (clear the selection? go back to Files?) or remove the button.\nNote (fedora1-parallax-6): Decision: remove the button from the start screen. There is nothing to cancel there (no dialog to close, no previous screen); clear-selection or go-to-Files duplicate back/up/path. Adding an FC_List 'cancelable' switch like setDirectoriesChoosable, off in Vue_Selection; FileChooser_Listener.cancel stays for other users.\n\nCommit e78a573 (develop, unpushed). Decided to REMOVE the button rather than give it a job: on the start screen there is nothing to cancel back to, and 'clear selection' / 'go to Files' would duplicate back, up and the path field. FC_List gained setCancelable/isCancelable (default true, rebuilds like setDirectoriesChoosable; select takes the freed column; setCancelButton no longer NPEs when hidden). Vue_Selection sets it false; its empty cancel() stays, commented. Verified in the hidden-window editor: 0 cancel buttons shown, select opens Demos/ and City.atlas (-> Vue_Edition). Side effect seen in the render: the top row's back/path/up columns shift a few px because the bottom row changed. If Simon wants cancel to do something instead (e.g. quit the editor), it's a one-line switch back plus the canc",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r3",
+   "title": "Start screen file chooser: Up/Down/Backspace/Left keys do nothing",
+   "detail": "Found by the r5 sweep. editor/src/jks/tools2d/filechooser/FC_List.java keyControlsListener handles DEL (back), LEFT (up) and UP/DOWN (move the selection) inside keyTyped() through event.getKeyCode(). Stage.keyTyped only sets the character, never a key code, so those branches never run: in the sweep, DOWN/UP left the selection unchanged, and DEL/LEFT left the folder unchanged. Only Enter works, because it is tested on the character. Fix: handle those keys in keyDown(), then run the editor and use them.\nNote (fedora1-parallax-6): keyDown handler written (skips when the event is handled or the path field has focus, so the List's own UP/DOWN and typing in the path are untouched). Also focusing the chooser in Vue_Selection.init: before, nothing held focus on the start screen so no key reached it until a row was clicked. Next: drive it in the /tmp/r5h harness.\n\nCommit a0c6f69 (develop, unpushed). FC_List: DEL/LEFT/UP/DOWN moved from keyTyped to keyDown (Enter stays in keyTyped, it is a character). keyDown skips when the path field has focus (else backspace in the path would go Back) and when the event is already handled (the libGDX List moves its own selection on UP/DOWN when it holds focus, which would otherwise move 2 rows). Also Vue_Selection.init now focuses the chooser: before, nothing held focus on the start screen, so for a real user no key worked until a row was clicked (the r5 sweep forced the focus by hand). Verified in a hidden-window editor run (harness /tmp/r12 over /t",
+   "tags": [
+    "editor",
+    "project-io"
+   ]
+  },
+  {
+   "ref": "r2",
+   "title": "Sweep the editor for controls that still do nothing",
+   "detail": "MEMORY_LANE.md §6 has a whole section titled 'Things that did nothing': a 'change the atlas?' dialog with empty YES and NO handlers, a 'Change Atlas' button with an empty listener, a Project Path folder button with no listener at all, Add at Front/Back radios that only checked themselves, a VSync checkbox created twice where the displayed one had no listener, an Application tab whose Full screen and Apply threw NPE, and a 'Transfert' tab that was an empty placeholder shown to users. Most were fixed in the 2026 modernization; nobody has since gone through the UI control by control and confirmed it.\nThis is a LOOKING task, not a reading one: ./gradlew :editor:run (workingDir is editor/, so the samples in editor/Files open), then exercise every control on both screens — start screen, Controls, Add texture, Textures, Background — and record which ones do nothing, do the wrong thing, or throw. Attach screenshots.\nClose it with the list. Anything found becomes its own ticket; do not fix them all in here.\n\nSwept every control on both screens by RUNNING the editor, not by reading it. How: no Xvfb/xdotool/ydotool on this Wayland desktop, so a throwaway harness (/tmp/r5h, not committed) starts the real Main_Editor in a hidden Lwjgl3 window, working dir a COPY of editor/ (/tmp/r5work, so editor/Files was never touched). It clicks, drags, types, presses keys and scrolls through Gdx.input's real InputMultiplexer (stage hit-testing included), captures framebuffer PNGs, logs state before/af",
+   "tags": [
+    "editor"
+   ]
+  }
+ ]
+}

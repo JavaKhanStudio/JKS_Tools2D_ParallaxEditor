@@ -3,7 +3,7 @@
 
 [tags.editor]
 label = "Editor UI"
-description = "The VisUI screens, panels, tabs and sliders"
+description = "The VisUI screens, panels, tabs, sliders, buttons and dialogs, and tools/driver-probe.sh that drives them off screen"
 color = "#c3a6f0"
 sort = 30
 context = """
@@ -49,7 +49,7 @@ HISTORY, not a backlog. Something you fix that it lists as broken MOVES into its
 # tag a ticket that crosses it with BOTH, which is why each pack names the other.
 [tags.project-io]
 label = "Project files"
-description = "Save, export, autosave, paths, the file chooser, hot reload"
+description = "Save, export, autosave, paths, the file chooser, hot reload (a button or dialog of theirs is #editor too)"
 color = "#5ec8c0"
 sort = 45
 context = """
@@ -94,7 +94,7 @@ HISTORY, not a backlog. Something you fix that it lists as broken MOVES into its
 # the library's own rules to ../JKS_Tools2D_ParallaxBackground and that board's pack.
 [tags.build]
 label = "Build & release"
-description = "Gradle, CI, dependency versions, the editor's release"
+description = "Gradle, CI, dependency versions, the editor's release, the board's action buttons (.atelier/actions.toml)"
 color = "#e8938f"
 sort = 50
 context = """
