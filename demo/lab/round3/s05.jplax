@@ -1,0 +1,122 @@
+{
+ "topHalf_top": {
+  "r": 0.9333333,
+  "g": 0.7882353,
+  "b": 0.7137255,
+  "a": 1.0
+ },
+ "topHalf_bottom": {
+  "r": 0.9333333,
+  "g": 0.7882353,
+  "b": 0.7137255,
+  "a": 1.0
+ },
+ "topHalfSize": 0.5,
+ "bottomHalf_top": {
+  "r": 0.7372549,
+  "g": 0.772549,
+  "b": 0.7254902,
+  "a": 1.0
+ },
+ "bottomHalf_bottom": {
+  "r": 0.7372549,
+  "g": 0.772549,
+  "b": 0.7254902,
+  "a": 1.0
+ },
+ "bottomHalfSize": 0.5,
+ "repeatOnX": true,
+ "repeatOnY": false,
+ "pageModel": {
+  "atlasName": "Printemps.atlas",
+  "outside": false,
+  "pageList": [
+   {
+    "regionName": "parallax1",
+    "regionPosition": 4,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.004,
+    "parallaxScalingSpeedY": 0.0024,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 2.6,
+    "decal_X_Ratio": 0,
+    "decal_Y_Ratio": 30,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "parallax1",
+    "regionPosition": 3,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.01,
+    "parallaxScalingSpeedY": 0.006,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 2.6,
+    "decal_X_Ratio": 41,
+    "decal_Y_Ratio": 4,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "parallax1",
+    "regionPosition": 2,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.03906249999999999,
+    "parallaxScalingSpeedY": 0.023437499999999997,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 2.6,
+    "decal_X_Ratio": 17,
+    "decal_Y_Ratio": 0,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "parallax1",
+    "regionPosition": 1,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.0625,
+    "parallaxScalingSpeedY": 0.0375,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 4.0,
+    "decal_X_Ratio": 63,
+    "decal_Y_Ratio": -5,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "parallax1",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.1,
+    "parallaxScalingSpeedY": 0.06,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 2.0,
+    "decal_X_Ratio": 29,
+    "decal_Y_Ratio": -8,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   }
+  ]
+ },
+ "useOriginalSize": true
+}

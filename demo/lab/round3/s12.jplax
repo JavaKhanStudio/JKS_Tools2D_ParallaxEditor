@@ -1,0 +1,139 @@
+{
+ "topHalf_top": {
+  "r": 0.0705882,
+  "g": 0.0078431,
+  "b": 0.0078431,
+  "a": 1.0
+ },
+ "topHalf_bottom": {
+  "r": 0.8470588,
+  "g": 0.4,
+  "b": 0.1647059,
+  "a": 1.0
+ },
+ "topHalfSize": 0.0,
+ "bottomHalf_top": {
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0
+ },
+ "bottomHalf_bottom": {
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0
+ },
+ "bottomHalfSize": 1.0,
+ "repeatOnX": true,
+ "repeatOnY": false,
+ "pageModel": {
+  "atlasName": "boss.atlas",
+  "outside": false,
+  "pageList": [
+   {
+    "regionName": "Clouds",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.0076146157548635145,
+    "parallaxScalingSpeedY": 0.004568769452918109,
+    "speedXAtRest": 25,
+    "sizeRatio": 1.2,
+    "decal_X_Ratio": 15,
+    "decal_Y_Ratio": 52,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "Mountains_big",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.01319507910772895,
+    "parallaxScalingSpeedY": 0.007917047464637368,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 1.0,
+    "decal_X_Ratio": 0,
+    "decal_Y_Ratio": 29,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "Mountains_small",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.02,
+    "parallaxScalingSpeedY": 0.012,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 1.0,
+    "decal_X_Ratio": 35,
+    "decal_Y_Ratio": 20,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "Trees_close",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.03273093335124384,
+    "parallaxScalingSpeedY": 0.019638560010746306,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 1.2,
+    "decal_X_Ratio": 10,
+    "decal_Y_Ratio": 12.5,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "Trees_far",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.04292745848208331,
+    "parallaxScalingSpeedY": 0.025756475089249987,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 1.2,
+    "decal_X_Ratio": 55,
+    "decal_Y_Ratio": 4.5,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   },
+   {
+    "regionName": "Trees_fartest",
+    "regionPosition": 0,
+    "flipX": false,
+    "flipY": false,
+    "parallaxScalingSpeedX": 0.05253055608807535,
+    "parallaxScalingSpeedY": 0.03151833365284521,
+    "speedXAtRest": 0.0,
+    "sizeRatio": 1.3,
+    "decal_X_Ratio": 25,
+    "decal_Y_Ratio": -4.5,
+    "padX": 0.0,
+    "padXFactor": 0.0,
+    "padY": 0.0,
+    "padYFactor": 0.0,
+    "mirror": false
+   }
+  ]
+ },
+ "useOriginalSize": true
+}

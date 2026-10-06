@@ -7,6 +7,8 @@
   tools/parallax_lab.py survey OUT_DIR          every sample page as it is, as a round (to render or grade)
   tools/parallax_lab.py round2 [OUT_DIR]        round 2: those pages next to Simon's, and brackets of speed ratio,
                                                 span and width, shuffled blind (default demo/lab/round2)
+  tools/parallax_lab.py round3 [OUT_DIR]        round 3: pages from the skill (version 2) on Printemps, boss and pure,
+                                                and the top of the speed span bracketed (default demo/lab/round3)
   tools/parallax_lab.py study [OUT_DIR]         the pages written from the art (r92), in order, to render and look
                                                 at (default demo/lab/study)
   tools/parallax_lab.py round1 [OUT_DIR]        round 1: Simon's pages, each rule broken once, and pages written from
@@ -15,6 +17,10 @@
 A round is a folder of .jplax pages and a round.json listing them in the order shown, with the folder of each page's
 atlas and what the scene tests; ParallaxLab (./gradlew :demo:lab) shows it and saves the grades next to it.
 Paths are relative to the repository root, the lab's working directory.
+
+Since r133 the lab, its rounds and the sample projects they read (editor/Files, demo/assets) are in the editor
+repository, JKS_Tools2D_ParallaxEditor, which has this file too: run survey, study and the rounds there. Here, lint
+finds a page's atlas next to it, in its round.json, or in core/test-data/samples.
 """
 import collections
 import copy
@@ -29,7 +35,9 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 LAYER_FIELDS = ['regionName', 'regionPosition', 'flipX', 'flipY', 'parallaxScalingSpeedX', 'parallaxScalingSpeedY',
                 'speedXAtRest', 'sizeRatio', 'decal_X_Ratio', 'decal_Y_Ratio', 'padX', 'padXFactor', 'padY',
-                'padYFactor', 'mirror']
+                'padYFactor', 'mirror', 'kind', 'name', 'particlesLibgdx', 'particlesGodot', 'particlesAnchor',
+                'shaderEffect', 'shaderAmplitude', 'shaderWavelength', 'shaderSpeed',
+                'sequenceSegments', 'sequenceSeed', 'sequenceLength']
 PAGE_FIELDS = ['topHalf_top', 'topHalf_bottom', 'topHalfSize', 'bottomHalf_top', 'bottomHalf_bottom',
                'bottomHalfSize', 'repeatOnX', 'repeatOnY', 'useOriginalSize']
 
@@ -86,6 +94,28 @@ def layer(region, position=0, speed=0.02, size=1.0, dx=0.0, dy=0.0, speed_y=None
             'padXFactor': 0.0, 'padY': pad_y, 'padYFactor': 0.0, 'mirror': mirror}
 
 
+def empty(name, speed=0.02, size=1.0, dx=0.0, dy=0.0, speed_y=None, rest=0.0, pad_x=0.0, pad_y=0.0):
+    """An EMPTY layer (format 5): no image, world width x size by world height x size, drawn only by the hook the game
+    registers under its name."""
+    out = layer(None, 0, speed, size, dx, dy, speed_y, rest, pad_x=pad_x, pad_y=pad_y)
+    out.update(kind='EMPTY', name=name)
+    return out
+
+
+def has_image(l):
+    """An IMAGE layer (the default) or a SHADER one (format 7, an image drawn through an effect); EMPTY and PARTICLES
+    layers (formats 5 and 6) have no region."""
+    return l.get('kind', 'IMAGE') in ('IMAGE', 'SHADER')
+
+
+def label(l):
+    if has_image(l):
+        return f"{l['regionName']}#{l['regionPosition']}"
+    if l.get('kind') == 'SEQUENCE' and not l.get('name'):  # unnamed, it reads as its segments
+        return 'SEQUENCE ' + '+'.join(s['regionName'] for s in l.get('sequenceSegments') or [])
+    return f"{l['kind']} '{l.get('name')}'"
+
+
 def page_of(atlas, layer_list, sky=None, ground=None, top_size=0.5, bottom_size=0.5, original_size=None):
     """sky/ground: (top hex, bottom hex) of the top and bottom gradient squares; None = white, as the editor starts."""
     sky = sky or ('ffffff', 'ffffff')
@@ -133,8 +163,9 @@ def lint(page, atlas_dir=None):
         span = max(s) / min(x for x in s if x > 0)
         if span < 2.5:
             problems.append(f'speed span {span:.1f}x (front/back): under ~3x the scene reads as one flat plane')
-        if span > 20:
-            problems.append(f'speed span {span:.0f}x: past ~15x the back looks painted on and the front whips')
+        if span > 45:
+            problems.append(f'speed span {span:.0f}x: past ~45x the back looks painted on and the front whips'
+                            ' (round 1: 45x scored 2; round 2: 41x on calm from the art scored 5)')
         steps = [s[i] / s[i - 1] for i in range(1, n) if s[i - 1] > 0 and s[i] > 0]
         flat = [i + 1 for i, r in enumerate(steps) if r < 1.02]
         if flat and not drops:
@@ -143,9 +174,87 @@ def lint(page, atlas_dir=None):
         if l['sizeRatio'] < 0.5 and page.get('repeatOnX', True) and l['padX'] == 0:
             problems.append(f"layer {i} is {l['sizeRatio']:.2f} worlds wide and tiled: its repeat shows"
                             f" {1 / l['sizeRatio']:.0f} times a screen")
+    problems += particle_faults(page, atlas_dir)
+    problems += shader_faults(page)
+    problems += sequence_faults(page, atlas_dir)
     if atlas_dir is not None:
         problems += layout(page, atlas_dir)
     return problems
+
+
+def particle_faults(page, atlas_dir):
+    """A PARTICLES layer draws nothing in libGDX without a .p, and its .p is looked up beside the page's atlas."""
+    problems = []
+    for i, l in enumerate(layers(page)):
+        if l.get('kind') != 'PARTICLES':
+            continue
+        effect = l.get('particlesLibgdx')
+        if not effect:
+            problems.append(f"layer {i} ({label(l)}) names no libGDX effect (particlesLibgdx): it draws nothing")
+        elif atlas_dir is not None and not os.path.exists(os.path.join(ROOT, atlas_dir, effect)):
+            problems.append(f"layer {i} ({label(l)}): no {os.path.relpath(os.path.join(ROOT, atlas_dir, effect), ROOT)}"
+                            f" beside the atlas: it draws nothing")
+    return problems
+
+
+def shader_faults(page):
+    """A SHADER layer with no wavelength draws its image without its effect; FOG thins by 0 to 1, no further."""
+    problems = []
+    for i, l in enumerate(layers(page)):
+        if l.get('kind') != 'SHADER':
+            continue
+        effect = l.get('shaderEffect', 'WAVE')
+        if not l.get('shaderWavelength', 0) > 0:
+            problems.append(f"layer {i} ({label(l)}) has no shaderWavelength: it draws its image without its {effect}")
+        amplitude = l.get('shaderAmplitude', 0)
+        if effect == 'FOG' and not 0 <= amplitude <= 1:
+            problems.append(f"layer {i} ({label(l)}): FOG thins by 0 to 1, its shaderAmplitude {amplitude:g} reads as"
+                            f" {min(1, max(0, amplitude)):g}")
+    return problems
+
+
+def sequence_faults(page, atlas_dir):
+    """A SEQUENCE layer (format 8) chains its segments' regions: core fails to load the page on a region its atlas does
+    not hold, draws nothing with no segment, reads a sequenceLength under 1 as 1 and weighs every segment 1 when no
+    weight is above 0. With the folder of the page's atlas, each segment's region is looked up in it."""
+    problems, regions = [], None
+    for i, l in enumerate(layers(page)):
+        if l.get('kind') != 'SEQUENCE':
+            continue
+        segments = l.get('sequenceSegments') or []
+        if not segments:
+            problems.append(f"layer {i} ({label(l)}) has no sequenceSegments: it draws nothing")
+            continue
+        length = l.get('sequenceLength', 1)
+        if length < 1:
+            problems.append(f"layer {i} ({label(l)}): its sequenceLength {length} reads as 1, one segment repeated")
+        if all(s.get('weight', 1) <= 0 for s in segments):
+            problems.append(f"layer {i} ({label(l)}): no segment weighs above 0, so each weighs 1")
+        if atlas_dir is None:
+            continue
+        if regions is None:
+            regions = _atlas_regions(page, atlas_dir)
+        if isinstance(regions, str):
+            problems.append(f"layer {i} ({label(l)}): segments not checked: {regions}")
+            continue
+        for k, s in enumerate(segments):
+            if (s['regionName'], s.get('regionPosition', 0)) not in regions:
+                problems.append(f"layer {i} ({label(l)}): segment {k} names no region {s['regionName']}"
+                                f"#{s.get('regionPosition', 0)} in {page['pageModel']['atlasName']}: the page fails to"
+                                f" load")
+    return problems
+
+
+def _atlas_regions(page, atlas_dir):
+    """The (name, position) pairs the page's atlas holds, or why they could not be read."""
+    try:
+        import parallax_regions as regions_tool
+    except ImportError:
+        return 'tools/parallax_regions.py needs Pillow'
+    atlas = os.path.join(ROOT, atlas_dir, page['pageModel']['atlasName'])
+    if not os.path.exists(atlas):
+        return f'no {os.path.relpath(atlas, ROOT)}'
+    return {(r['name'], r['pos']) for r in regions_tool.read_atlas(atlas)}
 
 
 SCREEN_W, SCREEN_H = 40.0, 22.5  # the lab's world at 1280x720, the camera's view before any scroll
@@ -172,7 +281,7 @@ def layout(page, atlas_dir):
       (d) regions packed with their whitespace stripped and useOriginalSize off: they are stretched over the layer;
       (e) a layer tiled on X whose left and right edges differ (seam > 20) in the rows on screen: a cut every repeat.
     A layer counts as covering a band only if it spans the screen's width: tiled on X without padding, or 1 world
-    wide or more."""
+    wide or more. An EMPTY layer covers nothing: what its hook draws is the game's."""
     try:
         import parallax_regions as regions_tool
     except ImportError:  # no Pillow
@@ -195,6 +304,11 @@ def _measure_layers(page, regions, regions_tool):
     original = page.get('useOriginalSize', False)
     sheets, placed, problems, stripped = {}, [], [], []
     for i, l in enumerate(layers(page)):
+        if not has_image(l):  # it covers nothing: its hook or its particles draw there, never a solid band
+            continue
+        if l.get('kind') == 'SHADER' and l.get('shaderEffect') == 'FOG' and l.get('shaderAmplitude', 0) > 0:
+            continue  # its opacity drifts: it covers nothing for sure
+
         r = regions.get((l['regionName'], l['regionPosition']))
         if r is None:
             problems.append(f"layer {i}: no region {l['regionName']}#{l['regionPosition']}"
@@ -325,9 +439,9 @@ def describe(page):
         sx = l['parallaxScalingSpeedX']
         step = '' if not prev else f'x{sx / prev:.2f}'
         prev = sx or prev
-        region = f"{l['regionName']}#{l['regionPosition']}"
+        region = label(l)
         y_over_x = l['parallaxScalingSpeedY'] / sx if sx else 0
-        marks = (' flip' if l['flipX'] else '') + (' mirror' if l.get('mirror') else '')
+        marks = (' flip' if l['flipX'] else '') + (' mirror' if l.get('mirror') and has_image(l) else '')
         out.append(f"  {i:2d} {region:<16} speed {sx:.4f} {step:<6} y/x {y_over_x:.2f} rest {l['speedXAtRest']:6.1f}"
                    f" size {l['sizeRatio']:5.2f} decal {l['decal_X_Ratio']:6.1f},{l['decal_Y_Ratio']:6.1f}{marks}")
     return '\n'.join(out)
@@ -560,6 +674,60 @@ def calm_from_art(front=0.07):
     return page_of('calm.atlas', L, sky=('00a6ff', 'f5f5f5'), ground=('05533f', '05533f'), original_size=True)
 
 
+def printemps_from_art(front=0.1):
+    """Printemps (r128, written from the skill, version 2): five strips 3645x580 (6.28:1), packed stripped. Back to
+    front by haze: p4 a peach wash (solid), p3 grey hills (art 24-82%, seam 100), p2 the field with pink trees (solid to
+    44%, seam 60), p1 telegraph poles (their wires touch the strip's top: the top goes above the screen), p0 flowers.
+    p3 and p2 do not tile cleanly: they are made wide (2.6 worlds), so a seam passes rarely. The poles are the big
+    near layer; the speed ratio x1.6 a layer from the field forward, the hills and wash far behind."""
+    L = [
+        layer('parallax1', 4, speed=front / 25, size=2.6, dx=0, dy=30),
+        layer('parallax1', 3, speed=front / 10, size=2.6, dx=41, dy=4),
+        layer('parallax1', 2, speed=front / 1.6 ** 2, size=2.6, dx=17, dy=0),
+        layer('parallax1', 1, speed=front / 1.6, size=4.0, dx=63, dy=-5),
+        layer('parallax1', 0, speed=front, size=2.0, dx=29, dy=-8),
+    ]
+    return page_of('Printemps.atlas', L, sky=('eec9b6', 'eec9b6'), ground=('bcc5b9', 'bcc5b9'), original_size=True)
+
+
+def boss_from_art(front=0.1):
+    """boss (r128, from the skill): calm's six strips redrawn as dark silhouettes against a fire-lit sky (the clouds'
+    undersides glow orange), at their own sizes (its tree strips are taller than calm's). Back to front as calm: Clouds,
+    Mountains_big, Mountains_small, Trees_close (the least dark), Trees_far, Trees_fartest (the biggest trees). Each
+    bottom edge under the solid band of the strip in front, the clouds' too. Deep, as round 2 graded calm best at 41x: 25x here."""
+    L = [
+        # The clouds' underside is a flat orange rim across the whole strip: on screen it reads as a line drawn across
+        # the sky, so it sinks behind the big mountains' solid band (to 12.3 world units up).
+        layer('Clouds', speed=front / 25, size=1.2, dx=15, dy=52, rest=25),
+        layer('Mountains_big', speed=front / 10, size=1.0, dx=0, dy=29),
+        layer('Mountains_small', speed=front / 5, size=1.0, dx=35, dy=20),
+        layer('Trees_close', speed=front / 2.2, size=1.2, dx=10, dy=12.5),
+        layer('Trees_far', speed=front / 1.4, size=1.2, dx=55, dy=4.5),
+        layer('Trees_fartest', speed=front, size=1.3, dx=25, dy=-4.5),
+    ]
+    # One gradient over the whole screen, dark above to the fire's orange at the horizon.
+    return page_of('boss.atlas', L, sky=('120202', 'd8662a'), top_size=0.0, bottom_size=1.0, original_size=True)
+
+
+def pure_from_art(ratio=1.6, front=0.1):
+    """pure (r128, from the skill): a bright day. Strips, back to front by haze: Sky (a solid blue strip, 3.5:1),
+    Clouds, Mountains_big (palest), Mountains_small, then three tree rows, palest first (Trees_close, Trees_far,
+    Trees_fartest), the road and the front grass. Each bottom edge under the solid band of the strip in front. Left
+    out: crasygrass and grass_back do not tile (seam 146, 167); feuille_fond and feuille_vert are walls of foliage
+    taller than the forest, which they would hide; idkman is a second road. Speeds a constant ratio a layer from the
+    front, the clouds drifting."""
+    order = [  # region, size, decal Y %
+        ('Sky', 1.2, 40), ('Clouds', 1.0, 62), ('Mountains_big', 1.0, 31), ('Mountains_small', 1.1, 22),
+        ('Trees_close', 1.3, 24), ('Trees_far', 1.2, 11), ('Trees_fartest', 1.3, 2), ('road', 1.0, -7),
+        ('grass', 1.0, -15),
+    ]
+    stagger = [0, 37, 71, 13, 53, 89, 29, 61, 7]
+    n = len(order)
+    L = [layer(r, speed=front / ratio ** (n - 1 - i), size=size, dx=stagger[i], dy=dy, rest=30 if r == 'Clouds' else 0)
+         for i, (r, size, dy) in enumerate(order)]
+    return page_of('pure.atlas', L, sky=('0165bb', '38d6ff'), ground=('032200', '032200'), original_size=True)
+
+
 def study(out_dir):
     """The pages written from the art, not shuffled: to render and look at before a round is built from them."""
     scenes = [
@@ -664,6 +832,31 @@ def round2(out_dir):
                                      'background.')
 
 
+def round3(out_dir):
+    """Round 3 (r128): pages written from the skill (version 2) on three atlases no page has been written for, and the
+    top of the speed span bracketed, next to round 2's best two as anchors."""
+    s = {name: load(path) for name, (path, _) in SAMPLES.items()}
+    d = {name: atlas_dir for name, (_, atlas_dir) in SAMPLES.items()}
+    fairy_dir, calm_dir, pure_dir = 'editor/Files/Demos', 'editor/Files/transfer', 'editor/Files/Demos/Day/pureTest'
+    scenes = [
+        ('Printemps', s['Printemps'], d['Printemps'], 'Simon\'s page (control, never graded)'),
+        ('Printemps-art', printemps_from_art(), d['Printemps'], 'from the skill: strips stacked, poles big, 25x; the field\'s seam (the art\'s) passes once a tile'),
+        ('Boss-art', boss_from_art(), calm_dir, 'from the skill: silhouettes on a fire sky, 25x'),
+        ('Boss-art-shallow', rescale_span(boss_from_art(), 0.6), calm_dir, 'speed span 25x -> 7x'),
+        ('Pure-art', pure_from_art(), pure_dir, 'from the skill: nine strips, x1.6 a layer (43x)'),
+        ('Pure-art-x1.33', pure_from_art(ratio=4 / 3), pure_dir, 'x1.33 a layer, the samples\' ratio (10x)'),
+        ('PurpleFairy-art-x1.6', fairy_from_art(ratio=1.6), fairy_dir, 'anchor: graded 4 in round 2 (span 17x)'),
+        ('PurpleFairy-art-x2.0', fairy_from_art(ratio=2.0), fairy_dir, 'x2.0 a layer (span 64x)'),
+        ('Calm-art-deep', rescale_span(calm_from_art(), 1.5), calm_dir, 'anchor: graded 5 in round 2 (span 41x)'),
+        ('Calm-art-100x', rescale_span(calm_from_art(), math.log(100) / math.log(12)), calm_dir, 'speed span 12x -> 100x'),
+        ('OneNight-art-deep', rescale_span(night_from_art(), 1.6), fairy_dir, 'OneNight-art (4 in round 2), span 10x -> 40x'),
+        ('CalmTree3-art-deep', rescale_span(calm_tree_from_art(), 1.4), d['CalmTree3'], 'CalmTree3-art (4 in round 2), span 20x -> 66x'),
+    ]
+    write_round(out_dir, scenes, 128, 'Round 3 (r128): pages written from the skill on atlases never paged, and how '
+                                      'deep the speeds can go. Grade 1-5 on how good the scene feels as a game '
+                                      'background.')
+
+
 def find_atlas_dir(path, page):
     """The folder of a page's atlas: next to the page, else the one a round.json beside it names, else the one sample
     folder that holds an atlas of that name. None when it is not found once."""
@@ -678,7 +871,7 @@ def find_atlas_dir(path, page):
                 if os.path.normpath(scene['page']) == os.path.normpath(os.path.relpath(os.path.join(ROOT, path), ROOT)):
                     return scene['atlasDir']
     found = {os.path.relpath(os.path.dirname(a), ROOT)
-             for d in ('editor/Files', 'demo/assets') for a in glob.glob(os.path.join(ROOT, d, '**', name), recursive=True)}
+             for d in ('editor/Files', 'demo/assets', 'core/test-data/samples') for a in glob.glob(os.path.join(ROOT, d, '**', name), recursive=True)}
     return found.pop() if len(found) == 1 else None
 
 
@@ -707,6 +900,8 @@ def main(argv):
     if cmd == 'study':
         study(argv[2] if len(argv) > 2 else 'demo/lab/study')
         return 0
+    if cmd == 'round3':
+        return round3(argv[2] if len(argv) > 2 else 'demo/lab/round3')
     if cmd == 'round2':
         round2(argv[2] if len(argv) > 2 else 'demo/lab/round2')
         return 0

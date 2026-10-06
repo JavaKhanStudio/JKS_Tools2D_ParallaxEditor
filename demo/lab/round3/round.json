@@ -1,0 +1,129 @@
+{
+ "note": "Round 3 (r128): pages written from the skill on atlases never paged, and how deep the speeds can go. Grade 1-5 on how good the scene feels as a game background.",
+ "seed": 128,
+ "scenes": [
+  {
+   "id": "s01",
+   "page": "demo/lab/round3/s01.jplax",
+   "atlasDir": "editor/Files/transfer",
+   "name": "Calm-art-100x",
+   "about": "Calm-art-100x: speed span 12x -> 100x",
+   "lint": [
+    "speed span 100x: past ~45x the back looks painted on and the front whips (round 1: 45x scored 2; round 2: 41x on calm from the art scored 5)"
+   ]
+  },
+  {
+   "id": "s02",
+   "page": "demo/lab/round3/s02.jplax",
+   "atlasDir": "editor/Files/Demos/Day/pureTest",
+   "name": "Pure-art",
+   "about": "Pure-art: from the skill: nine strips, x1.6 a layer (43x)",
+   "lint": [
+    "(b) layer 1 (Clouds#0): its art reaches its bottom edge, on screen at 62% of its height, and no nearer layer covers that edge"
+   ]
+  },
+  {
+   "id": "s03",
+   "page": "demo/lab/round3/s03.jplax",
+   "atlasDir": "editor/Files/Demos",
+   "name": "OneNight-art-deep",
+   "about": "OneNight-art-deep: OneNight-art (4 in round 2), span 10x -> 40x",
+   "lint": []
+  },
+  {
+   "id": "s04",
+   "page": "demo/lab/round3/s04.jplax",
+   "atlasDir": "editor/Files/Demos",
+   "name": "PurpleFairy-art-x2.0",
+   "about": "PurpleFairy-art-x2.0: x2.0 a layer (span 64x)",
+   "lint": [
+    "speed span 64x: past ~45x the back looks painted on and the front whips (round 1: 45x scored 2; round 2: 41x on calm from the art scored 5)",
+    "(e) layer 4 (3#0) is tiled on X but its left and right edges differ (seam 117 > 20): a cut shows every repeat"
+   ]
+  },
+  {
+   "id": "s05",
+   "page": "demo/lab/round3/s05.jplax",
+   "atlasDir": "demo/assets",
+   "name": "Printemps-art",
+   "about": "Printemps-art: from the skill: strips stacked, poles big, 25x; the field's seam (the art's) passes once a tile",
+   "lint": [
+    "(e) layer 1 (parallax1#3) is tiled on X but its left and right edges differ (seam 100 > 20): a cut shows every repeat",
+    "(e) layer 2 (parallax1#2) is tiled on X but its left and right edges differ (seam 60 > 20): a cut shows every repeat"
+   ]
+  },
+  {
+   "id": "s06",
+   "page": "demo/lab/round3/s06.jplax",
+   "atlasDir": "demo/assets",
+   "name": "Printemps",
+   "about": "Printemps: Simon's page (control, never graded)",
+   "lint": [
+    "speed span 2.0x (front/back): under ~3x the scene reads as one flat plane",
+    "layers [3] move at the speed of the one behind: they fuse into one plane",
+    "(e) layer 1 (parallax1#3) is tiled on X but its left and right edges differ (seam 98 > 20): a cut shows every repeat",
+    "(e) layer 2 (parallax1#2) is tiled on X but its left and right edges differ (seam 59 > 20): a cut shows every repeat",
+    "(d) layers [1, 2, 3, 4] use regions packed with their whitespace stripped, and useOriginalSize is off: each is stretched over its whole layer",
+    "(b) layer 0 (parallax1#4): its art reaches its bottom edge, on screen at 39% of its height, and no nearer layer covers that edge",
+    "(b) layer 2 (parallax1#2): its art reaches its bottom edge, on screen at 56% of its height, and no nearer layer covers that edge",
+    "(b) layer 3 (parallax1#1): its art reaches its bottom edge, on screen at 56% of its height, and no nearer layer covers that edge",
+    "(b) layer 4 (parallax1#0): its art reaches its bottom edge, on screen at 56% of its height, and no nearer layer covers that edge",
+    "(c) the screen from 0% to 40% of its height (from the bottom) is covered by no layer and no gradient"
+   ]
+  },
+  {
+   "id": "s07",
+   "page": "demo/lab/round3/s07.jplax",
+   "atlasDir": "editor/Files/Aa new",
+   "name": "CalmTree3-art-deep",
+   "about": "CalmTree3-art-deep: CalmTree3-art (4 in round 2), span 20x -> 66x",
+   "lint": [
+    "speed span 66x: past ~45x the back looks painted on and the front whips (round 1: 45x scored 2; round 2: 41x on calm from the art scored 5)"
+   ]
+  },
+  {
+   "id": "s08",
+   "page": "demo/lab/round3/s08.jplax",
+   "atlasDir": "editor/Files/transfer",
+   "name": "Boss-art",
+   "about": "Boss-art: from the skill: silhouettes on a fire sky, 25x",
+   "lint": []
+  },
+  {
+   "id": "s09",
+   "page": "demo/lab/round3/s09.jplax",
+   "atlasDir": "editor/Files/Demos/Day/pureTest",
+   "name": "Pure-art-x1.33",
+   "about": "Pure-art-x1.33: x1.33 a layer, the samples' ratio (10x)",
+   "lint": [
+    "(b) layer 1 (Clouds#0): its art reaches its bottom edge, on screen at 62% of its height, and no nearer layer covers that edge"
+   ]
+  },
+  {
+   "id": "s10",
+   "page": "demo/lab/round3/s10.jplax",
+   "atlasDir": "editor/Files/transfer",
+   "name": "Calm-art-deep",
+   "about": "Calm-art-deep: anchor: graded 5 in round 2 (span 41x)",
+   "lint": []
+  },
+  {
+   "id": "s11",
+   "page": "demo/lab/round3/s11.jplax",
+   "atlasDir": "editor/Files/Demos",
+   "name": "PurpleFairy-art-x1.6",
+   "about": "PurpleFairy-art-x1.6: anchor: graded 4 in round 2 (span 17x)",
+   "lint": [
+    "(e) layer 4 (3#0) is tiled on X but its left and right edges differ (seam 117 > 20): a cut shows every repeat"
+   ]
+  },
+  {
+   "id": "s12",
+   "page": "demo/lab/round3/s12.jplax",
+   "atlasDir": "editor/Files/transfer",
+   "name": "Boss-art-shallow",
+   "about": "Boss-art-shallow: speed span 25x -> 7x",
+   "lint": []
+  }
+ ]
+}
