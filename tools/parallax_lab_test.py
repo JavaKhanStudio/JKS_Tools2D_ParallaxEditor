@@ -39,8 +39,9 @@ class LayoutLint(unittest.TestCase):
             with self.subTest(name):
                 problems = lab.layout(page, atlas_dir)
                 if name == 'PurpleFairy-art':
+                    # Its trees step 43 between neighbour columns: the limit is theirs (parallax:r253), and 117 is a cut.
                     self.assertEqual([('(e) layer 4 (3#0) is tiled on X but its left and right edges differ (seam 117 '
-                                       '> 20): a cut shows every repeat')], problems)
+                                       "> 43, the art's own step between columns): a cut shows every repeat")], problems)
                 else:
                     self.assertEqual([], problems)
 
