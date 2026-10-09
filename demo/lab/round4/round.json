@@ -1,0 +1,66 @@
+{
+ "note": "Round 4 (parallax:r227): is there a top to the speed span past 100x? Grade 1-5 on how good the scene feels as a game background.",
+ "seed": 227,
+ "scenes": [
+  {
+   "id": "s01",
+   "page": "demo/lab/round4/s01.jplax",
+   "atlasDir": "editor/Files/Demos/Day/pureTest",
+   "name": "Pure-art-250x",
+   "about": "Pure-art-250x: x1.99 a layer (span 250x)",
+   "lint": [
+    "speed span 250x: past 100x, the deepest span graded, nothing is known; the back may look painted on (round 3: 100x on calm from the art beat 41x, deeper won or tied every bracket)",
+    "(b) layer 1 (Clouds#0): its art reaches its bottom edge, on screen at 62% of its height, and no nearer layer covers that edge"
+   ]
+  },
+  {
+   "id": "s02",
+   "page": "demo/lab/round4/s02.jplax",
+   "atlasDir": "demo/assets",
+   "name": "Printemps-art",
+   "about": "Printemps-art: anchor: graded 4 in round 3 (25x)",
+   "lint": [
+    "(e) layer 1 (parallax1#3) is tiled on X but its left and right edges differ (seam 100 > 20): a cut shows every repeat",
+    "(e) layer 2 (parallax1#2) is tiled on X but its left and right edges differ (seam 60 > 20): a cut shows every repeat"
+   ]
+  },
+  {
+   "id": "s03",
+   "page": "demo/lab/round4/s03.jplax",
+   "atlasDir": "editor/Files/transfer",
+   "name": "Calm-art-250x",
+   "about": "Calm-art-250x: Calm-art-100x with its front kept and the rest pushed back: span 100x -> 250x",
+   "lint": [
+    "speed span 250x: past 100x, the deepest span graded, nothing is known; the back may look painted on (round 3: 100x on calm from the art beat 41x, deeper won or tied every bracket)"
+   ]
+  },
+  {
+   "id": "s04",
+   "page": "demo/lab/round4/s04.jplax",
+   "atlasDir": "editor/Files/transfer",
+   "name": "Calm-art-100x",
+   "about": "Calm-art-100x: anchor: graded 4 in round 3 (span 100x)",
+   "lint": []
+  },
+  {
+   "id": "s05",
+   "page": "demo/lab/round4/s05.jplax",
+   "atlasDir": "editor/Files/Demos/Day/pureTest",
+   "name": "Pure-art",
+   "about": "Pure-art: anchor: graded 5 in round 3 (x1.6 a layer, 43x)",
+   "lint": [
+    "(b) layer 1 (Clouds#0): its art reaches its bottom edge, on screen at 62% of its height, and no nearer layer covers that edge"
+   ]
+  },
+  {
+   "id": "s06",
+   "page": "demo/lab/round4/s06.jplax",
+   "atlasDir": "editor/Files/Demos/Day/pureTest",
+   "name": "Pure-art-100x",
+   "about": "Pure-art-100x: x1.78 a layer (span 100x)",
+   "lint": [
+    "(b) layer 1 (Clouds#0): its art reaches its bottom edge, on screen at 62% of its height, and no nearer layer covers that edge"
+   ]
+  }
+ ]
+}
