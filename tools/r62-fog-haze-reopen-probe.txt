@@ -1,0 +1,14 @@
+# r62: reopen what tools/r62-fog-haze-probe.txt saved: the FOG layer (4) shows depth haze 0.6 in both.
+sleep 3
+open build/r62/out/proj/r62.plaxpj
+sleep 2
+click tab.textures
+set texture.selection 4
+sleep 1
+shot build/r62/r1-project.png
+open build/r62/out/proj/r62.jplax
+sleep 2
+click tab.textures
+set texture.selection 4
+sleep 1
+shot build/r62/r2-jplax.png

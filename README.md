@@ -86,9 +86,9 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
     **Kind** makes the layer an `IMAGE`, an `EMPTY` slot a game's hook draws (its **Name** is the hook's key), a
     `PARTICLES` effect (a libGDX `.p` and a Godot `.tscn`, named relative to the atlas's folder, typed or picked with
     `...`; the libGDX one plays in the preview; **Anchor** `LAYER` or `VIEW`), a `SHADER` drawing its image through
-    `WAVE` or `FOG` (**Amplitude**, **Wavelength**, **Speed**; a layer made `FOG` from another effect starts at 0.25,
-    8.25, 1.5), or a `SEQUENCE` chaining several images. A layer made
-    `SEQUENCE` starts with its image as its one segment and a new seed. Its **Segments** are listed A, B, C... with a
+    `WAVE` or `FOG` (**Amplitude**, **Wavelength**, **Speed**, and for `FOG` its **Depth haze**, 0 to 1, which whitens
+    every layer behind it; a layer made `FOG` from another effect starts at 0.25, 8.25, 1.5, haze 0.25), or a
+    `SEQUENCE` chaining several images. A layer made `SEQUENCE` starts with its image as its one segment and a new seed. Its **Segments** are listed A, B, C... with a
     weight each (how often it is picked, out of the sum), `^` `v` to move one, `x` to remove one (not the last);
     **Add the image selected in Adding new** appends a segment, an atlas region or a loose image (export flattens it
     into the atlas like any other). The first segment sets the layer's height, so moving another first rescales the
