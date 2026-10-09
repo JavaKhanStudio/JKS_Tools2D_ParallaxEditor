@@ -1,0 +1,19 @@
+# r65: the "effect-layers" surface, one still per kind (tools/driver-probe.sh Files/Demos/EffectLayers.plaxpj < this,
+# shots in editor/build/r65).
+sleep 4
+click tab.textures
+set texture.selection 2
+sleep 1
+shot build/r65/2-sequence.png
+set texture.selection 3
+sleep 1
+shot build/r65/3-empty.png
+set texture.selection 4
+sleep 1
+shot build/r65/4-particles.png
+set texture.selection 5
+sleep 1
+shot build/r65/5-fog.png
+set texture.selection 7
+sleep 1
+shot build/r65/7-wave.png

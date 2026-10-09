@@ -1,0 +1,42 @@
+# r65: builds editor/Files/Demos/EffectLayers.plaxpj, the "effect-layers" surface, from OneNight's own art: one layer of
+# each kind after IMAGE. tools/driver-probe.sh < this writes it under editor/build/r65/out (made first); the
+# .plaxpj is then copied beside OneNight.atlas, which it names.
+sleep 3
+open Files/Demos/OneNight.plaxpj
+sleep 2
+click tab.textures
+# Layers by index from 0, back to front. 2 ground: a SEQUENCE of its one image.
+set texture.selection 2
+set texture.kind SEQUENCE
+sleep 1
+shot build/r65/b2-sequence.png
+# 3 ground: an EMPTY slot, the key of a game's hook.
+set texture.selection 3
+set texture.kind EMPTY
+set texture.name hook
+# 4 ground: PARTICLES with no effect file (marked missing: the controls are what is judged).
+set texture.selection 4
+set texture.kind PARTICLES
+# 5 ground: FOG at the editor's starting numbers, its haze over the five layers behind it.
+set texture.selection 5
+set texture.kind SHADER
+set texture.shaderEffect FOG
+sleep 1
+shot build/r65/b5-fog.png
+# 7 the front water: a WAVE.
+set texture.selection 7
+set texture.kind SHADER
+set texture.shaderEffect WAVE
+set texture.shaderAmplitude 0.3
+set texture.shaderWavelength 1
+set texture.shaderSpeed 1
+sleep 1
+shot build/r65/b7-wave.png
+set options.path build/r65/out
+set options.name EffectLayers
+set options.formatJson true
+click options.saveProject
+sleep 1
+shot build/r65/b-saved.png
+click text:OK
+sleep 1
