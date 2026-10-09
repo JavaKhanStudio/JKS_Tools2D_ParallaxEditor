@@ -1,0 +1,30 @@
+# r61: a layer made FOG starts at 0.25 / 8.25 / 1.5; one already FOG keeps its own (tools/driver-probe.sh < this,
+# shots in editor/build/r61). Needs the library's shader pages copied beside:
+#   mkdir -p editor/build/r61/td
+#   cp -r ../JKS_Tools2D_ParallaxBackground/core/test-data/{samples,shaders} editor/build/r61/td/
+#   cp ../JKS_Tools2D_ParallaxBackground/engines/godot/tests/shaders/s02.jplax editor/build/r61/td/shaders/
+sleep 3
+open build/r61/td/shaders/s02.jplax
+sleep 2
+click tab.textures
+# The FOG layer of s02 (0.7 / 3.5 / -2) keeps its own numbers when opened.
+set texture.selection 4
+sleep 1
+shot build/r61/1-fog-own.png
+# The WAVE layer (0.3 / 0.8 / -1.2) made FOG: 0.25 / 8.25 / 1.5.
+set texture.selection 2
+set texture.shaderEffect FOG
+sleep 1
+shot build/r61/2-wave-to-fog.png
+# An IMAGE layer made SHADER (WAVE, its numbers 0) then FOG: 0.25 / 8.25 / 1.5.
+set texture.selection 1
+set texture.kind SHADER
+sleep 1
+shot build/r61/3-image-to-shader.png
+set texture.shaderEffect FOG
+sleep 1
+shot build/r61/4-image-to-fog.png
+# Back on the FOG layer: still its own.
+set texture.selection 4
+sleep 1
+shot build/r61/5-fog-own-again.png

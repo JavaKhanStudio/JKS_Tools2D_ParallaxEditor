@@ -113,7 +113,10 @@ public class VE_Tab_Texture_Kind extends Table
 		onChange(particlesAnchor, () -> currentlySelectedParallax.setAnchor(particlesAnchor.getSelected()));
 		onChange(shaderEffect, () ->
 		{
-			currentlySelectedParallax.setShaderEffect(shaderEffect.getSelected());
+			Utils_LayerKind.setShaderEffect(currentlySelectedParallax, shaderEffect.getSelected());
+			updating = true;
+			showShaderNumbers(currentlySelectedParallax);
+			updating = false;
 			refreshMarks();
 		});
 		particlesLibgdxPick.addListener(Utils_Interface.changeListener(() -> pick("libGDX effect", "p", particlesLibgdx)));
@@ -286,9 +289,7 @@ public class VE_Tab_Texture_Kind extends Table
 		particlesGodot.setText(layer.getParticlesGodot() == null ? "" : layer.getParticlesGodot());
 		particlesAnchor.setSelected(layer.getAnchor());
 		shaderEffect.setSelected(layer.getShaderEffect());
-		shaderAmplitude.setValue(layer.getShaderAmplitude());
-		shaderWavelength.setValue(layer.getShaderWavelength());
-		shaderSpeed.setValue(layer.getShaderSpeed());
+		showShaderNumbers(layer);
 
 		clearChildren();
 		add(new VisLabel("Kind")).padRight(6);
@@ -311,6 +312,13 @@ public class VE_Tab_Texture_Kind extends Table
 
 		refreshMarks();
 		updating = false;
+	}
+
+	private void showShaderNumbers(ParallaxLayer layer)
+	{
+		shaderAmplitude.setValue(layer.getShaderAmplitude());
+		shaderWavelength.setValue(layer.getShaderWavelength());
+		shaderSpeed.setValue(layer.getShaderSpeed());
 	}
 
 	/** Colors each engine's mark: green it draws the layer, orange it lacks something, red it cannot draw it. */

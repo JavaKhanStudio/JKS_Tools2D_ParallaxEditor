@@ -25,6 +25,7 @@ import jks.tools2d.parallax.editor.vue.edition.VE_Tab_TextureList_Adding;
 import jks.tools2d.parallax.editor.vue.edition.data.Position_Infos;
 import jks.tools2d.parallax.heart.Gvars_Parallax;
 import jks.tools2d.parallax.pages.Enum_LayerKind;
+import jks.tools2d.parallax.pages.Enum_ShaderEffect;
 import jks.tools2d.parallax.pages.Parallax_Model;
 import jks.tools2d.parallax.pages.Sequence_Segment;
 import jks.tools2d.parallax.pages.Utils_Page;
@@ -40,6 +41,8 @@ public final class Utils_LayerKind
 	/** A new SEQUENCE layer's cycle length: the format's default. */
 	public static final int DEFAULT_SEQUENCE_LENGTH = new Parallax_Model().sequenceLength;
 	private static final Random SEEDS = new Random();
+	/** A layer made FOG starts at the numbers Simon tuned in the library's fog lab (parallax:r208, r61 here). */
+	public static final float FOG_AMPLITUDE = 0.25f, FOG_WAVELENGTH = 8.25f, FOG_SPEED = 1.5f;
 
 	private Utils_LayerKind()
 	{}
@@ -101,6 +104,22 @@ public final class Utils_LayerKind
 		if (kind == Enum_LayerKind.PARTICLES)
 			loadLibgdxEffect(rebuilt);
 		return rebuilt;
+	}
+
+	/**
+	 * Sets the SHADER layer {@code layer}'s effect; one made FOG from another effect starts at the FOG_ numbers, one
+	 * already FOG keeps its own.
+	 */
+	public static void setShaderEffect(ParallaxLayer layer, Enum_ShaderEffect effect)
+	{
+		boolean startsFog = effect == Enum_ShaderEffect.FOG && layer.getShaderEffect() != Enum_ShaderEffect.FOG;
+		layer.setShaderEffect(effect);
+		if (startsFog)
+		{
+			layer.setShaderAmplitude(FOG_AMPLITUDE);
+			layer.setShaderWavelength(FOG_WAVELENGTH);
+			layer.setShaderSpeed(FOG_SPEED);
+		}
 	}
 
 	/**
