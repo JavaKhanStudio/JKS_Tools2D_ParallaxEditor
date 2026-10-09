@@ -37,7 +37,8 @@ import jks.tools2d.parallax.pages.WholePage_Model;
  * sample atlases. "cpu" is act + render before glFinish: the time the game thread spends issuing the frame.
  * {@code --plax page.plax} (assets-relative, its atlas too) shows that saved page instead, still, and
  * {@code --original-size true|false} overrides the pages' {@link WholePage_Model#useOriginalSize}: with {@code --shot},
- * a before/after of stripped atlas regions (tools/r41-stripped-shot.sh).
+ * a before/after of stripped atlas regions (tools/r41-stripped-shot.sh). {@code --fog strength} gives both pages a depth
+ * fog (parallax r217): every layer the fog reaches is drawn through the fog shader, a batch flush each.
  */
 public class ParallaxStress extends ApplicationAdapter
 {
@@ -49,6 +50,8 @@ public class ParallaxStress extends ApplicationAdapter
 	private final String[] atlases;
 	private final String plax;
 	private final Boolean originalSize;
+	/** The pages' fog strength; negative: as the pages have it. */
+	private final float fog;
 
 	private Parallax_Heart heart;
 	private WholePage_Model[] pages;
@@ -66,7 +69,7 @@ public class ParallaxStress extends ApplicationAdapter
 	{
 		int layers = 200;
 		String repeat = "x", size = "0.3,1.5", shotFile = null, atlasNames = "Hiver.atlas,Printemps.atlas", plaxFile = null, original = null;
-		float secs = 10, transferEvery = 2;
+		float secs = 10, transferEvery = 2, fogStrength = -1;
 		long s = 42;
 		for (int i = 0; i + 1 < args.length; i += 2)
 		{
@@ -82,6 +85,7 @@ public class ParallaxStress extends ApplicationAdapter
 				case "--atlases": atlasNames = args[i + 1]; break;
 				case "--plax": plaxFile = args[i + 1]; break;
 				case "--original-size": original = args[i + 1]; break;
+				case "--fog": fogStrength = Float.parseFloat(args[i + 1]); break;
 				default: throw new IllegalArgumentException("Unknown option " + args[i]);
 			}
 		}
@@ -98,6 +102,7 @@ public class ParallaxStress extends ApplicationAdapter
 		atlases = atlasNames.split(",");
 		plax = plaxFile;
 		originalSize = original == null ? null : Boolean.valueOf(original);
+		fog = fogStrength;
 	}
 
 	public static void main(String[] args)
@@ -127,6 +132,9 @@ public class ParallaxStress extends ApplicationAdapter
 		if (originalSize != null)
 			for (WholePage_Model page : pages)
 				page.useOriginalSize = originalSize;
+		if (fog >= 0)
+			for (WholePage_Model page : pages)
+				page.setFogStrength(fog);
 		heart.setPage(pages[0]);
 		heart.screenSpeedConstantX = plax != null ? 0 : 80;
 		heart.screenSpeedConstantY = repeatY && plax == null ? 40 : 0;
@@ -233,8 +241,8 @@ public class ParallaxStress extends ApplicationAdapter
 			sum += sorted[i];
 			cpu += cpuMs[i];
 		}
-		System.out.printf("stress layers=%d repeat=%s%s size=%.2f..%.2f frames=%d | frame ms avg=%.2f p50=%.2f p99=%.2f max=%.2f (cpu avg %.2f) | per frame: draw calls %.1f, texture binds %.1f, vertices %.0f | gpu %s%n",
-				layerCount, repeatX ? "x" : "", repeatY ? "y" : "", minSize, maxSize, frames,
+		System.out.printf("stress layers=%d repeat=%s%s size=%.2f..%.2f fog=%s frames=%d | frame ms avg=%.2f p50=%.2f p99=%.2f max=%.2f (cpu avg %.2f) | per frame: draw calls %.1f, texture binds %.1f, vertices %.0f | gpu %s%n",
+				layerCount, repeatX ? "x" : "", repeatY ? "y" : "", minSize, maxSize, fog < 0 ? "page" : String.valueOf(fog), frames,
 				sum / frames, sorted[frames / 2], sorted[(int) (frames * 0.99)], sorted[frames - 1], cpu / frames,
 				drawCalls / (float) frames, textureBindings / (float) frames, vertices / (float) frames, renderer);
 	}
