@@ -1,3 +1,4 @@
+# Superseded by tools/r66-page-fog-probe.txt: r66 removed texture.shaderHaze (the fog is the page's, library r217).
 # r62: a FOG layer's depth haze slider (texture.shaderHaze), shown for FOG only; moving it hazes the layers behind;
 # saved in the .plaxpj and the exported .jplax, and shown again when reopened (tools/driver-probe.sh < this, shots in
 # editor/build/r62). Setup, then reopen with tools/r62-fog-haze-reopen-probe.txt:

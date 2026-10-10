@@ -1,0 +1,21 @@
+# r66: reopen what tools/r66-page-fog-probe.txt saved: each shows strength 0.05 and colour c08060 in Background > Fog,
+# and the preview fogged as build/r66/3-fog005-colour.png.
+sleep 3
+open build/r66/out/proj/r66.plaxpj
+sleep 2
+click tab.background
+click tab.background.fog
+sleep 1
+shot build/r66/r1-project.png
+open build/r66/out/proj/r66.jplax
+sleep 2
+click tab.background
+click tab.background.fog
+sleep 1
+shot build/r66/r2-jplax.png
+open build/r66/out/proj/r66.plax
+sleep 2
+click tab.background
+click tab.background.fog
+sleep 1
+shot build/r66/r3-plax.png

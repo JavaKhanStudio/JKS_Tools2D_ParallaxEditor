@@ -27,12 +27,17 @@ import com.kotcrab.vis.ui.widget.color.ExtendedColorPicker;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 
+import jks.tools2d.libgdxutils.JksNumberSlider;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.editor.driver.Names;
 import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
+import jks.tools2d.parallax.pages.WholePage_Model;
 import jks.tools2d.parallax.side.SquareBackground;
 
-/** Background tab: size and gradient colors of the top and bottom squares drawn behind the layers. */
+/**
+ * Background tab: size and gradient colors of the top and bottom squares drawn behind the layers, and the page's depth
+ * fog.
+ */
 public class VE_Tab_ColorConfig extends Tab implements Disposable
 {
 	private final Table mainTable;
@@ -48,6 +53,7 @@ public class VE_Tab_ColorConfig extends Tab implements Disposable
 		Tab topPalette = buildColorPalette("Top Square", parallax_Heart.topSquare);
 		tabbedPane.add(topPalette);
 		tabbedPane.add(buildColorPalette("Bottom Square", parallax_Heart.bottomSquare));
+		tabbedPane.add(buildFog());
 		tabbedPane.switchTab(topPalette);
 		Names.tabs(tabbedPane, "tab.background");
 
@@ -121,8 +127,62 @@ public class VE_Tab_ColorConfig extends Tab implements Disposable
 		};
 	}
 
+	/**
+	 * The page's depth fog (library r217, format 10): each IMAGE, SEQUENCE and SHADER layer is mixed toward the colour
+	 * by {@code 1 - exp(-strength * (1/speed - 1/front))}, front the page's fastest speed ratio X. Written into the
+	 * edited page, which Save and Export copy, and pushed to the reader at once.
+	 */
+	private Tab buildFog()
+	{
+		Color color = new Color(parallax_Heart.parallaxReader.getFogColor());
+		// Per unit of 1/speed: 0.03 fogs a layer at speed 0.01 under a front at 0.1 by 93%.
+		JksNumberSlider strength = new JksNumberSlider(0, 0.2f, 0.001f, baseSkin)
+		{
+			@Override
+			public void actionOnSliderMovement()
+			{applyFog(getValue(), color);}
+		};
+		strength.setName("background.fog.strength");
+		strength.setValue(parallax_Heart.parallaxReader.getFogStrength());
+
+		ExtendedColorPicker picker = buildPicker(color, () -> applyFog(strength.getValue(), color));
+		picker.setName("background.fog.color");
+
+		Table content = new Table();
+		content.add(new VisLabel("Fog strength")).row();
+		content.add(strength).row();
+		content.add(new VisLabel("Fog color")).row();
+		content.add(picker);
+
+		Table scrolled = new Table();
+		scrolled.add(Utils_Interface.buildVerticalScroll(content, baseSkin)).expand().fill();
+
+		return new Tab(false, false)
+		{
+			@Override
+			public String getTabTitle()
+			{return "Fog";}
+
+			@Override
+			public Table getContentTable()
+			{return scrolled;}
+		};
+	}
+
+	private static void applyFog(float strength, Color color)
+	{
+		WholePage_Model page = parallax_Heart.currentPage;
+		page.setFogStrength(strength);
+		page.fogColor.set(color);
+		parallax_Heart.parallaxReader.setFog(strength, color);
+	}
+
 	/** A picker editing {@code target} in place. */
 	private ExtendedColorPicker buildPicker(Color target)
+	{return buildPicker(target, () -> {});}
+
+	/** A picker editing {@code target} in place, then running {@code afterChange}. */
+	private ExtendedColorPicker buildPicker(Color target, Runnable afterChange)
 	{
 		ExtendedColorPicker picker = new ExtendedColorPicker();
 		picker.setColor(target);
@@ -130,7 +190,10 @@ public class VE_Tab_ColorConfig extends Tab implements Disposable
 		{
 			@Override
 			public void changed(Color newColor)
-			{target.set(newColor);}
+			{
+				target.set(newColor);
+				afterChange.run();
+			}
 		});
 		pickers.add(picker);
 		fitFields(picker);

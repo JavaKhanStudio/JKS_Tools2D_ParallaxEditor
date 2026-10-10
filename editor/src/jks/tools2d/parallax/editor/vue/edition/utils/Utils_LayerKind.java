@@ -42,7 +42,7 @@ public final class Utils_LayerKind
 	public static final int DEFAULT_SEQUENCE_LENGTH = new Parallax_Model().sequenceLength;
 	private static final Random SEEDS = new Random();
 	/** A layer made FOG starts at the numbers Simon tuned in the library's fog lab (parallax:r208, r61 here). */
-	public static final float FOG_AMPLITUDE = 0.25f, FOG_WAVELENGTH = 8.25f, FOG_SPEED = 1.5f, FOG_HAZE = 0.25f;
+	public static final float FOG_AMPLITUDE = 0.25f, FOG_WAVELENGTH = 8.25f, FOG_SPEED = 1.5f;
 
 	private Utils_LayerKind()
 	{}
@@ -119,7 +119,6 @@ public final class Utils_LayerKind
 			layer.setShaderAmplitude(FOG_AMPLITUDE);
 			layer.setShaderWavelength(FOG_WAVELENGTH);
 			layer.setShaderSpeed(FOG_SPEED);
-			layer.setShaderHaze(FOG_HAZE);
 		}
 	}
 

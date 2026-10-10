@@ -339,6 +339,8 @@ public final class Utils_Saving
 		page.useOriginalSize = parallax_Heart.currentPage.useOriginalSize;
 		page.repeatOnX = parallax_Heart.parallaxReader.isRepeatOnX();
 		page.repeatOnY = parallax_Heart.parallaxReader.isRepeatOnY();
+		page.setFogStrength(parallax_Heart.parallaxReader.getFogStrength());
+		page.fogColor.set(parallax_Heart.parallaxReader.getFogColor());
 	}
 
 	private static boolean isProjectFolder(String where)

@@ -59,8 +59,6 @@ public class VE_Tab_Texture_Kind extends Table
 	private final JksNumberSlider shaderAmplitude = shaderSlider(0, 2, 0.01f, ParallaxLayer::setShaderAmplitude);
 	private final JksNumberSlider shaderWavelength = shaderSlider(0, 10, 0.05f, ParallaxLayer::setShaderWavelength);
 	private final JksNumberSlider shaderSpeed = shaderSlider(-5, 5, 0.05f, ParallaxLayer::setShaderSpeed);
-	/** FOG's depth haze: the reader mixes every layer behind toward the mist's white, each frame (library r211). */
-	private final JksNumberSlider shaderHaze = shaderSlider(0, 1, 0.05f, ParallaxLayer::setShaderHaze);
 
 	private final Table engines = new Table(), nameRows = new Table(), particleRows = new Table(), shaderRows = new Table();
 	private final VE_Tab_Texture_Sequence sequenceRows;
@@ -87,7 +85,6 @@ public class VE_Tab_Texture_Kind extends Table
 		shaderAmplitude.setName("texture.shaderAmplitude");
 		shaderWavelength.setName("texture.shaderWavelength");
 		shaderSpeed.setName("texture.shaderSpeed");
-		shaderHaze.setName("texture.shaderHaze");
 
 		kind.setItems(EDITABLE_KINDS);
 		particlesAnchor.setItems(Enum_ParticleAnchor.values());
@@ -120,7 +117,6 @@ public class VE_Tab_Texture_Kind extends Table
 			updating = true;
 			showShaderNumbers(currentlySelectedParallax);
 			updating = false;
-			layoutShaderRows(currentlySelectedParallax);
 			refreshMarks();
 		});
 		particlesLibgdxPick.addListener(Utils_Interface.changeListener(() -> pick("libGDX effect", "p", particlesLibgdx)));
@@ -141,12 +137,7 @@ public class VE_Tab_Texture_Kind extends Table
 		particleRows.add(new VisLabel("Anchor: libGDX, browser, Godot")).colspan(2).row();
 		particleRows.add(particlesAnchor).colspan(2).row();
 
-	}
-
-	/** The SHADER rows of {@code layer}'s effect: only FOG has a depth haze (the reader ignores it on WAVE). */
-	private void layoutShaderRows(ParallaxLayer layer)
-	{
-		shaderRows.clearChildren();
+		// WAVE and FOG share these; the depth fog is the page's (Background, Fog), no longer a FOG layer's haze.
 		shaderRows.add(new VisLabel("Effect")).row();
 		shaderRows.add(shaderEffect).row();
 		shaderRows.add(new VisLabel("Amplitude")).row();
@@ -155,11 +146,6 @@ public class VE_Tab_Texture_Kind extends Table
 		shaderRows.add(shaderWavelength).row();
 		shaderRows.add(new VisLabel("Speed")).row();
 		shaderRows.add(shaderSpeed).row();
-		if (layer.getShaderEffect() == Enum_ShaderEffect.FOG)
-		{
-			shaderRows.add(new VisLabel("Depth haze")).row();
-			shaderRows.add(shaderHaze).row();
-		}
 	}
 
 	private static String engineTitle(Engine engine)
@@ -318,10 +304,7 @@ public class VE_Tab_Texture_Kind extends Table
 			showGodotStatus();
 		}
 		if (layer.kind == Enum_LayerKind.SHADER)
-		{
-			layoutShaderRows(layer);
 			add(shaderRows).colspan(2).row();
-		}
 		if (layer.kind == Enum_LayerKind.SEQUENCE)
 		{
 			add(sequenceRows).colspan(2).row();
@@ -337,7 +320,6 @@ public class VE_Tab_Texture_Kind extends Table
 		shaderAmplitude.setValue(layer.getShaderAmplitude());
 		shaderWavelength.setValue(layer.getShaderWavelength());
 		shaderSpeed.setValue(layer.getShaderSpeed());
-		shaderHaze.setValue(layer.getShaderHaze());
 	}
 
 	/** Colors each engine's mark: green it draws the layer, orange it lacks something, red it cannot draw it. */
