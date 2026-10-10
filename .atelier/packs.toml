@@ -2,6 +2,7 @@
 # Only [tags.<slug>] tables belong in this file.
 
 [tags.editor]
+visual = true          # a screen: its close needs a Chose: line (r1559, r1584)
 label = "Editor UI"
 description = "The VisUI screens, panels, tabs, sliders, buttons and dialogs, and tools/driver-probe.sh that drives them off screen"
 color = "#c3a6f0"
