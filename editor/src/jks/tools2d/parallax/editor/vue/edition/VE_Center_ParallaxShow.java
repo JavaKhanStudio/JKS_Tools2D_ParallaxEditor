@@ -166,7 +166,8 @@ public class VE_Center_ParallaxShow extends Table
 			optionsControl.setVisible(!fullScreen.isChecked());
 		});
 		fullScreen.setSize(buttonSize, buttonSize);
-		fullScreen.setPosition(getWidth() - fullScreen.getWidth(), getHeight() - fullScreen.getHeight() / 2);
+		// In the bar under the preview, level with play, its right side on the preview's (r69): not over the image.
+		fullScreen.setPosition(decalX + parr_Size_X - fullScreen.getWidth(), size_Height_Bloc_Parallax_Controle / 2f - buttonSize / 2);
 
 		parallaxSpeedXSlider = new Slider(-15, 15, 0.05f, false, baseSkin);
 		parallaxSpeedXSlider.setName("preview.speedX");
