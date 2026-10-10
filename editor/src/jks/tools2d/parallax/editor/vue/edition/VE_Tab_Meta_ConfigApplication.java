@@ -55,6 +55,7 @@ public class VE_Tab_Meta_ConfigApplication extends Tab
 		apply.getLabel().setStyle(GVars_UI.labelStyle_OptionsTitle);
 		onChange(apply, () -> applyWindowMode());
 
+		mainTable.top().pad(8);
 		mainTable.add(new VisLabel("Window size")).align(Align.left).padRight(10);
 		mainTable.add(resolutionBox).align(Align.left).row();
 		mainTable.add(fullScreenCheckBox).colspan(2).align(Align.left).row();

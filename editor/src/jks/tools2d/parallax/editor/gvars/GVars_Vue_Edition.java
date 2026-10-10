@@ -35,10 +35,10 @@ import jks.tools2d.parallax.pages.WholePage_Model;
 public final class GVars_Vue_Edition
 {
 	/**
-	 * The four main tab titles take 314 px in the skin font, which does not grow with the window: any narrower and
-	 * the tab bar wraps onto a second row that covers the top of the tab content (below a 1225 px wide window).
+	 * The four main tab titles take about 21 times the font size (314 px at 15 px, GVars_UI.fontSize): any narrower and
+	 * the tab bar wraps onto a second row that covers the top of the tab content.
 	 */
-	private static final int MIN_LEFT_PANEL_WIDTH = 320;
+	private static final float TABS_PER_FONT_PX = 21.5f;
 
 	public static int size_Bloc_Selection_Parallax_Width;
 	public static int size_Bloc_Parallax;
@@ -130,7 +130,7 @@ public final class GVars_Vue_Edition
 
 	public static void buildSizes()
 	{
-		size_Bloc_Selection_Parallax_Width = Math.max((int) (Gdx.graphics.getWidth() / 3.9f), MIN_LEFT_PANEL_WIDTH);
+		size_Bloc_Selection_Parallax_Width = Math.max((int) (Gdx.graphics.getWidth() / 3.6f), (int) (GVars_UI.fontSize() * TABS_PER_FONT_PX) + 6);
 		size_Bloc_Parallax = Gdx.graphics.getWidth() - size_Bloc_Selection_Parallax_Width;
 		size_Height_Bloc_Parallax_Controle = (int) (Gdx.graphics.getHeight() / 5.5f);
 		sizeTabsBar = Gdx.graphics.getWidth() / 40;

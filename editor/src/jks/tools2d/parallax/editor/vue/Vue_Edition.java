@@ -101,6 +101,7 @@ public class Vue_Edition extends AVue_Model
 	/** The widgets read the sizes of the window when created, so they are rebuilt when it changes. */
 	private void buildInterface()
 	{
+		GVars_UI.fitWindow();
 		builtWidth = Gdx.graphics.getWidth();
 		builtHeight = Gdx.graphics.getHeight();
 

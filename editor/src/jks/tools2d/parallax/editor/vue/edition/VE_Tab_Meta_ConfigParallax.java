@@ -85,6 +85,7 @@ public class VE_Tab_Meta_ConfigParallax extends Tab
 					});
 		});
 
+		mainTable.top().pad(8);
 		mainTable.add(new VisLabel("-- Configuration --")).colspan(2).row();
 		mainTable.add(repeatOnX);
 		mainTable.add(repeatOnY).row();

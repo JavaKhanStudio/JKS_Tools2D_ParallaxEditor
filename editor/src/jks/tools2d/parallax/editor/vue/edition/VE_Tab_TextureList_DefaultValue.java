@@ -17,9 +17,9 @@ import com.kotcrab.vis.ui.widget.VisCheckBox;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.JksNumberSlider;
 import jks.tools2d.libgdxutils.Utils_Interface;
-import jks.tools2d.parallax.editor.driver.Names;
 import jks.tools2d.parallax.pages.Parallax_Model;
 
 /**
@@ -28,10 +28,12 @@ import jks.tools2d.parallax.pages.Parallax_Model;
  */
 public class VE_Tab_TextureList_DefaultValue extends Tab
 {
-	private static final int colspan = 3;
-	private static final float frontButtonSize = 70;
+	private static final float frontButtonSize = 40;
 
 	private final Table mainTable = new Table();
+	private final JksForm form = new JksForm(JksForm.nameWidth("At rest speed", "Speed ratio X"));
+	/** The "+ each" names of the increment lines, hidden with them. */
+	private final List<VisLabel> incrementTitles = new ArrayList<>();
 	private final VisCheckBox increment = new VisCheckBox("Increment Each Time");
 	private final VisCheckBox front = new VisCheckBox("Add at Front"), back = new VisCheckBox("Add at Back");
 	private final VisCheckBox flipX = new VisCheckBox("Flip X"), flipY = new VisCheckBox("Flip Y");
@@ -80,41 +82,55 @@ public class VE_Tab_TextureList_DefaultValue extends Tab
 		flipXAlternate.addListener(onChange(() -> getDefaults().setAlternateFlipX(flipXAlternate.isChecked())));
 		flipYAlternate.addListener(onChange(() -> getDefaults().setAlternateFlipY(flipYAlternate.isChecked())));
 
-		mainTable.add(setBackToFrontButton);
-		mainTable.add(setFrontToBackButton).row();
-		mainTable.add(back);
-		mainTable.add(front).row();
-		mainTable.add(increment).colspan(2).row();
-		mainTable.add(incrementOnce).padRight(10);
-		mainTable.add(decrementOnce).row();
-		mainTable.add(flipX);
-		mainTable.add(flipY).row();
-		mainTable.add(flipXAlternate);
-		mainTable.add(flipYAlternate).row();
+		// Lines, not a name over each slider across the panel (r67): the order of addition, the flips, then each value
+		// with, when "Increment each time" is on, what is added to it (the speeds: what multiplies them) after each layer.
+		Table order = new Table();
+		order.left().defaults().padRight(6);
+		order.add(setBackToFrontButton).size(frontButtonSize);
+		order.add(back);
+		order.add(setFrontToBackButton).size(frontButtonSize);
+		order.add(front);
+		form.wide(order);
+		form.wide(increment);
+		Table once = new Table();
+		once.left().defaults().padRight(6);
+		once.add(incrementOnce);
+		once.add(decrementOnce);
+		form.wide(once);
+		Table flips = new Table();
+		flips.left().defaults().padRight(10);
+		flips.add(flipX);
+		flips.add(flipY).row();
+		flips.add(flipXAlternate);
+		flips.add(flipYAlternate);
+		form.wide(flips);
 
-		// Default value range, then increment range (multiplicative factor for the speeds).
-		addPair("decal X", -50, 50, 1, -50, 50, 1, Parallax_Model::getDecal_X_Ratio, Parallax_Model::setDecal_X_Ratio);
-		addPair("decal Y", -150, 150, 1, -150, 150, 1, Parallax_Model::getDecal_Y_Ratio, Parallax_Model::setDecal_Y_Ratio);
-		addPair("Size Ratio", 0.01f, 3, 0.01f, -0.5f, 0.5f, 0.01f, Parallax_Model::getSizeRatio,
+		// The names are the 2019 ones (defaults.decalX, defaults.speedRatioX): the driver's scripts know them.
+		addPair("decalX", "Decal X", -50, 50, 1, -50, 50, 1, Parallax_Model::getDecal_X_Ratio, Parallax_Model::setDecal_X_Ratio);
+		addPair("decalY", "Decal Y", -150, 150, 1, -150, 150, 1, Parallax_Model::getDecal_Y_Ratio, Parallax_Model::setDecal_Y_Ratio);
+		addPair("sizeRatio", "Size ratio", 0.01f, 3, 0.01f, -0.5f, 0.5f, 0.01f, Parallax_Model::getSizeRatio,
 				(model, value) -> model.setSizeRatio(model == getDefaults().defaultModel ? Math.max(0.01f, value) : value));
-		addPair("At rest Speed", -10, 10, 0.5f, -10, 10, 0.5f, model -> model.speedXAtRest, (model, value) -> model.speedXAtRest = value);
-		addPair("-- Speed ratio X --", 0.005f, 0.2f, 0.001f, 0.1f, 3, 0.01f, Parallax_Model::getParallaxScalingSpeedX, Parallax_Model::setParallaxScalingSpeedX);
-		addPair("-- Speed ratio Y --", 0.005f, 0.2f, 0.001f, 0.1f, 3, 0.01f, Parallax_Model::getParallaxScalingSpeedY, Parallax_Model::setParallaxScalingSpeedY);
+		addPair("atRestSpeed", "At rest speed", -10, 10, 0.5f, -10, 10, 0.5f, model -> model.speedXAtRest, (model, value) -> model.speedXAtRest = value);
+		addPair("speedRatioX", "Speed ratio X", 0.005f, 0.2f, 0.001f, 0.1f, 3, 0.01f, Parallax_Model::getParallaxScalingSpeedX, Parallax_Model::setParallaxScalingSpeedX);
+		addPair("speedRatioY", "Speed ratio Y", 0.005f, 0.2f, 0.001f, 0.1f, 3, 0.01f, Parallax_Model::getParallaxScalingSpeedY, Parallax_Model::setParallaxScalingSpeedY);
+
+		mainTable.top().add(form).growX().pad(6);
 	}
 
-	private void addPair(String title, float min, float max, float step, float incMin, float incMax, float incStep,
+	private void addPair(String name, String title, float min, float max, float step, float incMin, float incMax, float incStep,
 			Function<Parallax_Model, Float> getter, BiConsumer<Parallax_Model, Float> setter)
 	{
 		ModelSlider value = new ModelSlider(min, max, step, getter, setter, false);
 		ModelSlider incrementValue = new ModelSlider(incMin, incMax, incStep, getter, setter, true);
-		value.slider.setName("defaults." + Names.slug(title));
-		incrementValue.slider.setName("defaults." + Names.slug(title) + ".increment");
+		value.slider.setName("defaults." + name);
+		incrementValue.slider.setName("defaults." + name + ".increment");
 		defaultSliders.add(value);
 		incrementSliders.add(incrementValue);
 
-		mainTable.add(new VisLabel(title)).colspan(2).row();
-		mainTable.add(value.slider).colspan(colspan).row();
-		mainTable.add(incrementValue.slider).colspan(colspan).row();
+		form.line(title, value.slider);
+		VisLabel each = new VisLabel(title.contains("Speed ratio") ? "  x each" : "  + each");
+		incrementTitles.add(each);
+		form.line(each, incrementValue.slider);
 	}
 
 	private ChangeListener onChange(Runnable action)
@@ -147,6 +163,8 @@ public class VE_Tab_TextureList_DefaultValue extends Tab
 			slider.refresh();
 			slider.slider.setVisible(getDefaults().increment);
 		}
+		for (VisLabel title : incrementTitles)
+			title.setVisible(getDefaults().increment);
 		flipXAlternate.setVisible(getDefaults().increment);
 		flipYAlternate.setVisible(getDefaults().increment);
 

@@ -83,7 +83,7 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
     quickly builds a stack of layers with depth.
   - **Textures:** every setting of the selected layer: its position in the stack, clone, set as default, delete/undo,
     flips, and the sliders. The arrow buttons next to a slider copy that value from the layer in front / behind.
-    **Kind** makes the layer an `IMAGE`, an `EMPTY` slot a game's hook draws (its **Name** is the hook's key), a
+    **Kind** makes the layer an `IMAGE`, an `EMPTY` slot a game's hook draws (its **Hook key**, the layer's name), a
     `PARTICLES` effect (a libGDX `.p` and a Godot `.tscn`, named relative to the atlas's folder, typed or picked with
     `...`; the libGDX one plays in the preview; **Anchor** `LAYER` or `VIEW`), a `SHADER` drawing its image through
     `WAVE` or `FOG` (**Amplitude**, **Wavelength**, **Speed**; a layer made `FOG` from another effect starts at 0.25,
@@ -102,10 +102,13 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
     its first segment. Saving the project elsewhere copies the
     effect files with the atlas. What each setting means: the library README's layer settings.
   - **Background:** the top and bottom squares: on/off, size, and both colors, with an eyedropper that picks a color
-    from the preview (right click cancels it). **Fog** is the page's depth fog: **Fog strength** (0 to 0.2, 0 none)
-    mixes each image, sequence and shader layer toward **Fog color** (a pale white by default), more the slower the
+    from the preview (right click cancels it). **Fog** is the page's depth fog: **Strength** (0 to 0.2, 0 none)
+    mixes each image, sequence and shader layer toward its **Color** (a pale white by default), more the slower the
     layer scrolls than the page's fastest; it is per unit of 1/speed, so 0.03 fogs a layer at speed 0.01 under a front
     at 0.1 by 93%. A page saved before it had one takes its FOG layers' old depth haze as its strength.
+
+Each setting is one line, its name left of its slider and value. The text grows with the window (16 px at the
+default 1300 px width), and so does the left panel.
 
 The mouse wheel changes the slider under the mouse. Over a slider's number field, it changes the digit left of the
 text cursor.

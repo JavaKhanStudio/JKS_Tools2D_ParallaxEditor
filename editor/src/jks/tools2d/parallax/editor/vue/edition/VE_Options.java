@@ -40,8 +40,6 @@ public class VE_Options extends Table
 
 		savingProject.setName("options.saveProject");
 		savingExport.setName("options.export");
-		savingProject.setBounds(Gdx.graphics.getWidth() - buttonSize * 3, Gdx.graphics.getHeight() - (buttonSize + decal), buttonSize, buttonSize);
-		savingExport.setBounds(Gdx.graphics.getWidth() - buttonSize * 3, Gdx.graphics.getHeight() - (buttonSize + decal) * 2, buttonSize, buttonSize);
 
 		formatLibGDX = new VisCheckBox("LibGDX");
 		formatLibGDX.setChecked(true);
@@ -78,6 +76,22 @@ public class VE_Options extends Table
 		parallaxPath.setName("options.path");
 		parallaxName.setName("options.name");
 
+		// The formats two a column, three rows and the title in the two buttons' height, at the right edge; the buttons
+		// left of them, placed from the table's width: the font grows with the window (r67), a fixed 100 px did not hold it.
+		Table formatTable = new Table();
+		formatTable.top().left().defaults().height((buttonSize + decal) * 2 / 4f).left().padRight(8);
+		formatTable.add(new VisLabel("Export formats")).colspan(2).row();
+		formatTable.add(formatLibGDX);
+		formatTable.add(etc2).row();
+		formatTable.add(formatJson);
+		formatTable.add(pixelArt).row();
+		formatTable.add(forceExport).row();
+		float formatWidth = formatTable.getPrefWidth();
+		float buttonsX = Gdx.graphics.getWidth() - formatWidth - buttonSize - decal * 2;
+		savingProject.setBounds(buttonsX, Gdx.graphics.getHeight() - (buttonSize + decal), buttonSize, buttonSize);
+		savingExport.setBounds(buttonsX, Gdx.graphics.getHeight() - (buttonSize + decal) * 2, buttonSize, buttonSize);
+		formatTable.setBounds(buttonsX + buttonSize + decal, savingExport.getY(), formatWidth, (buttonSize + decal) * 2);
+
 		Table projectPathTable = new Table();
 		projectPathTable.setBounds(savingProject.getX() - pathWidth - decal, savingProject.getY() + textHeight / 2 - decal, pathWidth, textHeight);
 		projectPathTable.add(new VisLabel("Project Path : "));
@@ -87,17 +101,6 @@ public class VE_Options extends Table
 		projectNameTable.setBounds(savingExport.getX() - textWidth - decal, savingExport.getY() + textHeight / 2 - decal, textWidth, textHeight);
 		projectNameTable.add(new VisLabel("Project Name : "));
 		projectNameTable.add(parallaxName).right();
-
-		Table formatTable = new Table();
-		formatTable.setBounds(savingExport.getWidth() + savingExport.getX(), savingExport.getY(), 100, savingExport.getHeight() + savingProject.getHeight());
-		// Six rows in the two buttons' height: at their natural height the last one ran over the preview.
-		formatTable.top().defaults().height(textHeight * 0.75f);
-		formatTable.add(new VisLabel("Exp Format")).left().row();
-		formatTable.add(formatLibGDX).left().row();
-		formatTable.add(etc2).left().row();
-		formatTable.add(formatJson).left().row();
-		formatTable.add(forceExport).left().row();
-		formatTable.add(pixelArt).left();
 
 		setInfos();
 

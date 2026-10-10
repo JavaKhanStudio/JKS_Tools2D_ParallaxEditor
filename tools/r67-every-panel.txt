@@ -1,0 +1,54 @@
+# r67: every panel of the editor at its default window (cage's 1280x720), to judge how compact and readable it is:
+# the s02 shader page (its FOG layer, 4, is the effect panel), every tab, then the bottom of the Textures tab, which
+# should need no scrolling for the effect rows. Shots in editor/build/r67/$R67_SET (a folder per run: before, after).
+#   mkdir -p editor/build/r67/td
+#   cp -r ../JKS_Tools2D_ParallaxBackground/core/test-data/{samples,shaders} editor/build/r67/td/
+#   cp ../JKS_Tools2D_ParallaxBackground/engines/godot/tests/shaders/s02.jplax editor/build/r67/td/shaders/
+#   sed "s/SET/after/" tools/r67-every-panel.txt | tools/driver-probe.sh
+sleep 3
+open build/r67/td/shaders/s02.jplax
+sleep 2
+click tab.controls
+click tab.controls.parallax
+sleep 1
+shot build/r67/SET/controls-parallax.png
+click tab.controls.application
+sleep 1
+shot build/r67/SET/controls-application.png
+click tab.controls.infos
+sleep 1
+shot build/r67/SET/controls-infos.png
+click tab.addTexture
+click tab.addTexture.defaultValue
+sleep 1
+shot build/r67/SET/addTexture-defaultValue.png
+click tab.addTexture.addingNew
+sleep 1
+shot build/r67/SET/addTexture-addingNew.png
+click tab.textures
+set texture.selection 4
+sleep 1
+shot build/r67/SET/textures-fog.png
+list
+wheel texture.selectFirst 20
+sleep 1
+shot build/r67/SET/textures-fog-scrolled.png
+set texture.selection 1
+sleep 1
+shot build/r67/SET/textures-image.png
+click tab.background
+click tab.background.topSquare
+sleep 1
+shot build/r67/SET/background-topSquare.png
+click tab.background.fog
+sleep 1
+shot build/r67/SET/background-fog.png
+# The other kinds' own lines, on layer 1 (nothing is saved).
+click tab.textures
+set texture.selection 1
+set texture.kind PARTICLES
+sleep 1
+shot build/r67/SET/textures-particles.png
+set texture.kind SEQUENCE
+sleep 1
+shot build/r67/SET/textures-sequence.png

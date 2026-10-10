@@ -21,6 +21,7 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 
 import jks.tools2d.filechooser.FC_List;
 import jks.tools2d.filechooser.FileChooser_Listener;
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.JksNumberSlider;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.EffectSupport.Engine;
@@ -38,7 +39,7 @@ import jks.tools2d.parallax.pages.Enum_ShaderEffect;
  * its effect and numbers, SEQUENCE its segments ({@link VE_Tab_Texture_Sequence}). Above them, a mark per engine says whether it draws the layer (docs/effect-layers.md, "Saying
  * what an engine cannot draw"); a control only some engines read says which.
  */
-public class VE_Tab_Texture_Kind extends Table
+public class VE_Tab_Texture_Kind extends JksForm
 {
 	private static final Enum_LayerKind[] EDITABLE_KINDS = { Enum_LayerKind.IMAGE, Enum_LayerKind.EMPTY, Enum_LayerKind.PARTICLES, Enum_LayerKind.SHADER, Enum_LayerKind.SEQUENCE };
 	private static final Color DRAWN = new Color(0.45f, 0.85f, 0.45f, 1), MISSING = new Color(1, 0.7f, 0.25f, 1), NOT_DRAWN = new Color(1, 0.4f, 0.4f, 1);
@@ -60,15 +61,18 @@ public class VE_Tab_Texture_Kind extends Table
 	private final JksNumberSlider shaderWavelength = shaderSlider(0, 10, 0.05f, ParallaxLayer::setShaderWavelength);
 	private final JksNumberSlider shaderSpeed = shaderSlider(-5, 5, 0.05f, ParallaxLayer::setShaderSpeed);
 
-	private final Table engines = new Table(), nameRows = new Table(), particleRows = new Table(), shaderRows = new Table();
+	private final Table engines = new Table();
+	private final VisLabel particlesLibgdxTitle = titled("libGDX .p", "A libGDX particle effect: libGDX, browser"),
+			particlesGodotTitle = titled("Godot .tscn", "A Godot scene: Godot"), anchorTitle = titled("Anchor", "libGDX, browser, Godot");
 	private final VE_Tab_Texture_Sequence sequenceRows;
 
 	/** Called with the rebuilt layer after the kind changed: the tab refreshes everything else from it. */
 	private final Runnable onKindChanged;
 	private boolean updating;
 
-	public VE_Tab_Texture_Kind(float width, Runnable onKindChanged)
+	public VE_Tab_Texture_Kind(float width, float nameWidth, Runnable onKindChanged)
 	{
+		super(nameWidth);
 		this.onKindChanged = onKindChanged;
 		sequenceRows = new VE_Tab_Texture_Sequence(width, onKindChanged);
 
@@ -122,30 +126,14 @@ public class VE_Tab_Texture_Kind extends Table
 		particlesLibgdxPick.addListener(Utils_Interface.changeListener(() -> pick("libGDX effect", "p", particlesLibgdx)));
 		particlesGodotPick.addListener(Utils_Interface.changeListener(() -> pick("Godot scene", "tscn", particlesGodot)));
 
-		float fieldWidth = width * 0.6f;
-		nameRows.add(nameTitle).colspan(2).row();
-		nameRows.add(name).width(fieldWidth).colspan(2).row();
+	}
 
-		particleRows.add(new VisLabel("libGDX effect (.p): libGDX, browser")).colspan(2).row();
-		particleRows.add(particlesLibgdx).width(fieldWidth);
-		particleRows.add(particlesLibgdxPick).row();
-		particleRows.add(particlesLibgdxStatus).colspan(2).row();
-		particleRows.add(new VisLabel("Godot scene (.tscn): Godot")).colspan(2).row();
-		particleRows.add(particlesGodot).width(fieldWidth);
-		particleRows.add(particlesGodotPick).row();
-		particleRows.add(particlesGodotStatus).colspan(2).row();
-		particleRows.add(new VisLabel("Anchor: libGDX, browser, Godot")).colspan(2).row();
-		particleRows.add(particlesAnchor).colspan(2).row();
-
-		// WAVE and FOG share these; the depth fog is the page's (Background, Fog), no longer a FOG layer's haze.
-		shaderRows.add(new VisLabel("Effect")).row();
-		shaderRows.add(shaderEffect).row();
-		shaderRows.add(new VisLabel("Amplitude")).row();
-		shaderRows.add(shaderAmplitude).row();
-		shaderRows.add(new VisLabel("Wavelength")).row();
-		shaderRows.add(shaderWavelength).row();
-		shaderRows.add(new VisLabel("Speed")).row();
-		shaderRows.add(shaderSpeed).row();
+	/** A name whose tooltip says what it is and which engines read it. */
+	private static VisLabel titled(String title, String why)
+	{
+		VisLabel label = new VisLabel(title);
+		new Tooltip.Builder(why).target(label).build();
+		return label;
 	}
 
 	private static String engineTitle(Engine engine)
@@ -285,29 +273,38 @@ public class VE_Tab_Texture_Kind extends Table
 		kind.setSelected(layer.kind);
 
 		name.setText(layer.getName() == null ? "" : layer.getName());
-		nameTitle.setText(layer.kind == Enum_LayerKind.EMPTY ? "Name: the key of the game's hook" : "Name");
+		nameTitle.setText(layer.kind == Enum_LayerKind.EMPTY ? "Hook key" : "Name");
 		particlesLibgdx.setText(layer.getParticlesLibgdx() == null ? "" : layer.getParticlesLibgdx());
 		particlesGodot.setText(layer.getParticlesGodot() == null ? "" : layer.getParticlesGodot());
 		particlesAnchor.setSelected(layer.getAnchor());
 		shaderEffect.setSelected(layer.getShaderEffect());
 		showShaderNumbers(layer);
 
+		// One line a setting, the kind's own under the rest (r67); the depth fog is the page's (Background, Fog).
 		clearChildren();
-		add(new VisLabel("Kind")).padRight(6);
-		add(kind).left().row();
-		add(engines).colspan(2).pad(4).row();
-		add(nameRows).colspan(2).row();
+		line("Kind", kind);
+		wide(engines);
+		line(nameTitle, name);
 		if (layer.kind == Enum_LayerKind.PARTICLES)
 		{
-			add(particleRows).colspan(2).row();
+			line(particlesLibgdxTitle, particlesLibgdx, particlesLibgdxPick);
+			under(particlesLibgdxStatus);
+			line(particlesGodotTitle, particlesGodot, particlesGodotPick);
+			under(particlesGodotStatus);
+			line(anchorTitle, particlesAnchor);
 			showLibgdxStatus(layer.getParticlesLibgdx() != null && layer.getParticles() == null ? "not loaded" : null);
 			showGodotStatus();
 		}
 		if (layer.kind == Enum_LayerKind.SHADER)
-			add(shaderRows).colspan(2).row();
+		{
+			line("Effect", shaderEffect);
+			line("Amplitude", shaderAmplitude);
+			line("Wavelength", shaderWavelength);
+			line("Speed", shaderSpeed);
+		}
 		if (layer.kind == Enum_LayerKind.SEQUENCE)
 		{
-			add(sequenceRows).colspan(2).row();
+			wide(sequenceRows);
 			sequenceRows.update();
 		}
 

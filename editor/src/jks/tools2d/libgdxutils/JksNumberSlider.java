@@ -3,6 +3,7 @@ package jks.tools2d.libgdxutils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldFilter;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import jks.tools2d.parallax.editor.inputs.GVars_Inputs;
 
@@ -89,8 +91,9 @@ public abstract class JksNumberSlider extends Table implements SelectableItem
 		slider.addListener(hover);
 		textField.addListener(hover);
 
-		add(slider);
-		add(textField).width(80);
+		// The slider takes what its row leaves; the value field fits a value like -0.01250 in its own font (r67).
+		add(slider).growX().minWidth(50);
+		add(textField).width(valueWidth(textField)).padLeft(4);
 	}
 
 	@Override
@@ -135,6 +138,13 @@ public abstract class JksNumberSlider extends Table implements SelectableItem
 		int cursor = textField.getCursorPosition();
 		textField.setText(format(newValue));
 		textField.setCursorPosition(Math.min(cursor, textField.getText().length()));
+	}
+
+	private static float valueWidth(TextField field)
+	{
+		GlyphLayout layout = new GlyphLayout(field.getStyle().font, "-0.01250");
+		Drawable background = field.getStyle().background;
+		return layout.width + (background == null ? 0 : background.getLeftWidth() + background.getRightWidth()) + 2;
 	}
 
 	private static Float parse(String text)

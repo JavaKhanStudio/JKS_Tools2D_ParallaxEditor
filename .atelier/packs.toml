@@ -23,6 +23,12 @@ NEVER MUTATE A SHARED SKIN STYLE: one fontColor change on the default style turn
 label gray. Copy it first (GVars_UI.labelStyle_Second). Nothing in scene2d disposes
 itself: fonts GVars_UI.resize regenerates, icon textures and colour pickers (shaders)
 all leaked.
+ONE FONT, SIZED BY THE WINDOW (r67): GVars_UI.resize makes areaTextFont (fontSize(),
+16 px at 1300 wide) and swaps it into every skin style that held the old one; that is the
+only sanctioned global style change. The left panel's width follows it so the four tabs
+never wrap. A panel is a libgdxutils/JksForm: one line a setting, its name left of its
+control (no name on a line above a full-width slider). A size in pixels next to text
+(a button, a field's width) goes stale when the font grows: derive it from fontSize().
 EVERY CONTROL HAS A NAME (setName; tabs via driver/Names): the driver and the
 presenter's scripts (~/Documents/GitHub/presenter) find controls by it. Name a new one;
 a rename breaks them. README.md's "Using the editor" documents every control: fix it in

@@ -27,6 +27,7 @@ import com.kotcrab.vis.ui.widget.color.ExtendedColorPicker;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.JksNumberSlider;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.editor.driver.Names;
@@ -96,20 +97,17 @@ public class VE_Tab_ColorConfig extends Tab implements Disposable
 			boxSizeText.setText(String.valueOf((int) boxSize.getValue()));
 		});
 
-		Table content = new Table();
-		content.add(activeBox).row();
-		content.add(boxSize);
-		content.add(boxSizeText).width(40).row();
-
-		content.add(new VisLabel("Top Color")).row();
-		content.add(new VisLabel("Picker"));
-		content.add(buildEyedropper(topPicker, name + "topEyedropper")).row();
-		content.add(topPicker).colspan(2).row();
-
-		content.add(new VisLabel("Bottom Color")).row();
-		content.add(new VisLabel("Picker"));
-		content.add(buildEyedropper(bottomPicker, name + "bottomEyedropper")).row();
-		content.add(bottomPicker).colspan(2);
+		// Lines (r67): each colour's name beside its eyedropper, its picker under it.
+		JksForm content = new JksForm(JksForm.nameWidth("Bottom color"));
+		content.wide(activeBox);
+		Table size = new Table();
+		size.add(boxSize).growX().minWidth(50);
+		size.add(boxSizeText).width(48).padLeft(4);
+		content.line("Size %", size);
+		content.line("Top color", leftAligned(buildEyedropper(topPicker, name + "topEyedropper")));
+		content.wide(topPicker);
+		content.line("Bottom color", leftAligned(buildEyedropper(bottomPicker, name + "bottomEyedropper")));
+		content.wide(bottomPicker);
 
 		// Two pickers are taller than a small window: scroll instead of overflowing over the tab bars.
 		Table scrolled = new Table();
@@ -148,11 +146,10 @@ public class VE_Tab_ColorConfig extends Tab implements Disposable
 		ExtendedColorPicker picker = buildPicker(color, () -> applyFog(strength.getValue(), color));
 		picker.setName("background.fog.color");
 
-		Table content = new Table();
-		content.add(new VisLabel("Fog strength")).row();
-		content.add(strength).row();
-		content.add(new VisLabel("Fog color")).row();
-		content.add(picker);
+		JksForm content = new JksForm(JksForm.nameWidth("Bottom color"));
+		content.line("Strength", strength);
+		content.wide(new VisLabel("Color"));
+		content.wide(picker);
 
 		Table scrolled = new Table();
 		scrolled.add(Utils_Interface.buildVerticalScroll(content, baseSkin)).expand().fill();
@@ -232,10 +229,17 @@ public class VE_Tab_ColorConfig extends Tab implements Disposable
 		}
 	}
 
+	private static Table leftAligned(Actor actor)
+	{
+		Table table = new Table();
+		table.left().add(actor);
+		return table;
+	}
+
 	/** Button arming the eyedropper: the next click in the preview sets this picker's color. */
 	private ImageButton buildEyedropper(ExtendedColorPicker picker, String name)
 	{
-		ImageButton eyedropper = Utils_Interface.buildSquareButton("editor/interfaces/colorSelection.png", 50);
+		ImageButton eyedropper = Utils_Interface.buildSquareButton("editor/interfaces/colorSelection.png", 30);
 		eyedropper.setName(name);
 		onChange(eyedropper, () -> GVars_Vue_Edition.colorPicked = picker);
 		return eyedropper;

@@ -19,29 +19,34 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
-import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.spinner.IntSpinnerModel;
 import com.kotcrab.vis.ui.widget.spinner.Spinner;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.JksNumberSlider;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.ParallaxLayer;
-import jks.tools2d.parallax.editor.driver.Names;
+import jks.tools2d.parallax.editor.gvars.GVars_UI;
 import jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition;
 
 /** Settings of the selected layer: position in the stack, flips, offsets, size, speeds, padding. */
 public class VE_Tab_Texture extends Tab
 {
+	/** The side of the panel's image buttons: a line's height, which grows with the font. */
+	private static float buttonSize()
+	{return Math.max(24, GVars_UI.fontSize() * 1.5f);}
 
 	private final Table container = new Table();
 	private final Table scrolled = new Table();
-	private final Table sliders = new Table();
+	/** The name column of this tab's lines and of its Kind section's, so their sliders line up. */
+	private final float nameWidth = JksForm.nameWidth("At rest speed", "Speed ratio X", "Wavelength", "Godot .tscn", "Hook key");
+	private final JksForm form = new JksForm(nameWidth);
 
 	private final IntSpinnerModel indexSelectionModel = new IntSpinnerModel(0, 0, 0);
-	private final Spinner indexSelectionSpinner = new Spinner("Layer Selection", indexSelectionModel);
+	private final Spinner indexSelectionSpinner = new Spinner("", indexSelectionModel);
 	private final IntSpinnerModel indexPositionModel = new IntSpinnerModel(0, 0, 0);
-	private final Spinner indexPositionSpinner = new Spinner("Layer Position", indexPositionModel);
+	private final Spinner indexPositionSpinner = new Spinner("", indexPositionModel);
 
 	private final TextButton selectMiddle = new TextButton(" 0 ", baseSkin), selectLast = new TextButton("0", baseSkin);
 	private final TextButton moveMiddle = new TextButton(" 0 ", baseSkin), moveLast = new TextButton("0", baseSkin);
@@ -58,21 +63,21 @@ public class VE_Tab_Texture extends Tab
 
 		@Override
 		public float getPrefHeight()
-		{return getDrawable() == null ? 0 : GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width / 2f;}
+		{return getDrawable() == null ? 0 : GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width / 5f;}
 	};
 
 	/** Sliders of the layer properties, refreshed from the selected layer. */
 	private final List<LayerSlider> layerSliders = List.of(
-			new LayerSlider("Decal X", -50, 50, 0.5f, ParallaxLayer::getDecalPercentX, ParallaxLayer::setDecalPercentX),
-			new LayerSlider("Decal Y", -150, 150, 0.5f, ParallaxLayer::getDecalPercentY, ParallaxLayer::setDecalPercentY),
-			new LayerSlider("Size Ratio", 0.01f, 3, 0.005f, ParallaxLayer::getSizeRatio, (layer, value) -> layer.setSizeRatio(Math.max(0.01f, value))),
-			new LayerSlider("At rest Speed", -100, 100, 0.1f, ParallaxLayer::getSpeedAtRest, ParallaxLayer::setSpeedAtRest),
-			new LayerSlider("-- Speed ratio X --", 0.005f, 0.1f, 0.001f, ParallaxLayer::getParallaxSpeedRatioX, ParallaxLayer::setParallaxSpeedRatioX),
-			new LayerSlider("-- Speed ratio Y --", 0.005f, 0.1f, 0.001f, ParallaxLayer::getParallaxSpeedRatioY, ParallaxLayer::setParallaxSpeedRatioY),
-			new LayerSlider("Pad X", 0, 50, 0.1f, ParallaxLayer::getPadX, ParallaxLayer::setPadX),
-			new LayerSlider("Pad Y", 0, 50, 0.05f, ParallaxLayer::getPadY, ParallaxLayer::setPadY));
+			new LayerSlider("decalX", "Decal X", -50, 50, 0.5f, ParallaxLayer::getDecalPercentX, ParallaxLayer::setDecalPercentX),
+			new LayerSlider("decalY", "Decal Y", -150, 150, 0.5f, ParallaxLayer::getDecalPercentY, ParallaxLayer::setDecalPercentY),
+			new LayerSlider("sizeRatio", "Size ratio", 0.01f, 3, 0.005f, ParallaxLayer::getSizeRatio, (layer, value) -> layer.setSizeRatio(Math.max(0.01f, value))),
+			new LayerSlider("atRestSpeed", "At rest speed", -100, 100, 0.1f, ParallaxLayer::getSpeedAtRest, ParallaxLayer::setSpeedAtRest),
+			new LayerSlider("speedRatioX", "Speed ratio X", 0.005f, 0.1f, 0.001f, ParallaxLayer::getParallaxSpeedRatioX, ParallaxLayer::setParallaxSpeedRatioX),
+			new LayerSlider("speedRatioY", "Speed ratio Y", 0.005f, 0.1f, 0.001f, ParallaxLayer::getParallaxSpeedRatioY, ParallaxLayer::setParallaxSpeedRatioY),
+			new LayerSlider("padX", "Pad X", 0, 50, 0.1f, ParallaxLayer::getPadX, ParallaxLayer::setPadX),
+			new LayerSlider("padY", "Pad Y", 0, 50, 0.05f, ParallaxLayer::getPadY, ParallaxLayer::setPadY));
 
-	private final VE_Tab_Texture_Kind kindSection = new VE_Tab_Texture_Kind(GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width, this::update);
+	private final VE_Tab_Texture_Kind kindSection = new VE_Tab_Texture_Kind(GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width, nameWidth, this::update);
 
 	private boolean updating;
 
@@ -124,49 +129,36 @@ public class VE_Tab_Texture extends Tab
 		flipY.addListener(onChange(() -> currentlySelectedParallax.setFlipY(flipY.isChecked())));
 		mirror.addListener(onChange(() -> currentlySelectedParallax.setMirror(mirror.isChecked())));
 
-		ImageButton delete = Utils_Interface.buildSquareButton("editor/interfaces/delete.png", 50);
+		ImageButton delete = Utils_Interface.buildSquareButton("editor/interfaces/delete.png", buttonSize());
 		delete.setName("texture.delete");
 		delete.addListener(onChange(this::deleteSelected));
-		ImageButton unDelete = Utils_Interface.buildSquareButton("editor/interfaces/cancelAction.png", 50);
+		ImageButton unDelete = Utils_Interface.buildSquareButton("editor/interfaces/cancelAction.png", buttonSize());
 		unDelete.setName("texture.undelete");
 		unDelete.addListener(onChange(this::restoreDeleted));
 
+		// One line a setting, its name beside it (r67): the tab fits a 720-pixel window but for a SEQUENCE layer's segments.
+		form.line("Selected", indexSelectionSpinner, selectFirst, selectMiddle, selectLast);
+		form.line("Position", indexPositionSpinner, moveFirst, moveMiddle, moveLast);
+		Table actions = new Table();
+		actions.left().defaults().padRight(6);
+		actions.add(clone);
+		actions.add(makeAsDefault);
+		actions.add(delete).size(buttonSize());
+		actions.add(unDelete).size(buttonSize());
+		form.wide(actions);
+		Table flips = new Table();
+		flips.left().defaults().padRight(10);
+		flips.add(flipX);
+		flips.add(flipY);
+		flips.add(mirror);
+		form.wide(flips);
+		form.wide(kindSection);
 		for (LayerSlider slider : layerSliders)
-		{
-			// A table per row, and sized buttons (an image button is at least as wide as its texture): the rows used to
-			// be wider than the panel.
-			Table row = new Table();
-			row.add(slider.slider);
-			row.add(slider.copyFromFront).size(30).padLeft(8);
-			row.add(slider.copyFromBack).size(30).padLeft(8);
-			sliders.add(new VisLabel(slider.title)).row();
-			sliders.add(row).row();
-		}
+			form.line(slider.title, slider.slider, slider.copyFromFront, slider.copyFromBack);
 
-		// The selection rows have a table of their own: in the tab's, the Kind section and the sliders spread their
-		// width over these columns, and the tab came out wider than the panel (r49).
-		Table layerRows = new Table();
-		layerRows.add(indexSelectionSpinner).colspan(2);
-		layerRows.add(selectFirst);
-		layerRows.add(selectMiddle);
-		layerRows.add(selectLast).row();
-		layerRows.add(indexPositionSpinner).colspan(2);
-		layerRows.add(moveFirst);
-		layerRows.add(moveMiddle);
-		layerRows.add(moveLast).row();
-		layerRows.add(clone);
-		layerRows.add(makeAsDefault);
-		layerRows.add(delete);
-		layerRows.add(unDelete).row();
-		layerRows.add(flipX);
-		layerRows.add(flipY);
-		layerRows.add(mirror).row();
-
-		container.add(new VisLabel("SECTION SELECTED")).pad(6).row();
-		container.add(showSelect).growX().row();
-		container.add(kindSection).pad(4).row();
-		container.add(layerRows).row();
-		container.add(sliders).expand().fill();
+		container.add(showSelect).growX().padBottom(4).row();
+		container.add(form).growX().pad(0, 6, 0, 6).row();
+		container.add().expand();
 
 		// The tab is taller than a 720-pixel window: scroll instead of pushing the tab bar off the top.
 		scrolled.add(Utils_Interface.buildVerticalScroll(container, baseSkin)).expand().fill();
@@ -298,10 +290,10 @@ public class VE_Tab_Texture extends Tab
 		final String title;
 		final Function<ParallaxLayer, Float> getter;
 		final JksNumberSlider slider;
-		final ImageButton copyFromFront = Utils_Interface.buildSquareButton("editor/interfaces/down-card.png", 30);
-		final ImageButton copyFromBack = Utils_Interface.buildSquareButton("editor/interfaces/up-card.png", 30);
+		final ImageButton copyFromFront = Utils_Interface.buildSquareButton("editor/interfaces/down-card.png", buttonSize());
+		final ImageButton copyFromBack = Utils_Interface.buildSquareButton("editor/interfaces/up-card.png", buttonSize());
 
-		LayerSlider(String title, float min, float max, float step, Function<ParallaxLayer, Float> getter, BiConsumer<ParallaxLayer, Float> setter)
+		LayerSlider(String name, String title, float min, float max, float step, Function<ParallaxLayer, Float> getter, BiConsumer<ParallaxLayer, Float> setter)
 		{
 			this.title = title;
 			this.getter = getter;
@@ -315,7 +307,8 @@ public class VE_Tab_Texture extends Tab
 				}
 			};
 
-			String name = "texture." + Names.slug(title);
+			// Named apart from its title: the driver and the presenter's scripts know the 2019 names (speedRatioX).
+			name = "texture." + name;
 			slider.setName(name);
 			copyFromFront.setName(name + ".fromFront");
 			copyFromBack.setName(name + ".fromBack");
