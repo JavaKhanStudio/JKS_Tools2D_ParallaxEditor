@@ -15,6 +15,7 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.spinner.IntSpinnerModel;
 import com.kotcrab.vis.ui.widget.spinner.Spinner;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.ParallaxLayer;
 import jks.tools2d.parallax.editor.gvars.GVars_UI;
@@ -26,28 +27,31 @@ import jks.tools2d.parallax.pages.Sequence_Segment;
 /**
  * A SEQUENCE layer's segments, a weight each, its seed and its cycle's length (docs/sequence-layers.md in the library).
  * The preview draws the cycle from the page's seed, as a game does that passes none; the letters under it are that
- * cycle, slot by slot.
+ * cycle, slot by slot. A line a segment, its letter in the name column (r68).
  */
-public class VE_Tab_Texture_Sequence extends Table
+public class VE_Tab_Texture_Sequence extends JksForm
 {
 	/** Longest cycle spelled out letter by letter: past it, the start and "...". */
 	private static final int CYCLE_LETTERS_SHOWN = 48;
 
-	private final Table segmentRows = new Table();
+	private final JksForm segmentRows;
 	private final TextButton add = new TextButton("Add the image selected in Adding new", baseSkin);
 	private final TextField seed = new TextField("", baseSkin);
 	private final TextButton reroll = new TextButton("Re-roll", baseSkin);
 	private final IntSpinnerModel lengthModel = new IntSpinnerModel(Utils_LayerKind.DEFAULT_SEQUENCE_LENGTH, 1, 4096);
-	private final Spinner length = new Spinner("Cycle length", lengthModel);
+	private final Spinner length = new Spinner("", lengthModel);
 	private final VisLabel repeats = new VisLabel(), cycle = new VisLabel();
 
 	/** Called with the rebuilt layer after a segment was added, removed or moved: the tab refreshes from it. */
 	private final Runnable onRebuilt;
 	private boolean updating;
 
-	public VE_Tab_Texture_Sequence(float width, Runnable onRebuilt)
+	/** {@code nameWidth}: the name column of the Kind lines this form sits under. */
+	public VE_Tab_Texture_Sequence(float nameWidth, Runnable onRebuilt)
 	{
+		super(nameWidth);
 		this.onRebuilt = onRebuilt;
+		segmentRows = new JksForm(nameWidth);
 
 		segmentRows.setName("texture.sequence.segments");
 		add.setName("texture.sequence.add");
@@ -78,18 +82,31 @@ public class VE_Tab_Texture_Sequence extends Table
 		});
 		onChange(length, () -> applySequence(segments(), currentlySelectedParallax.getSequenceSeed(), lengthModel.getValue()));
 
-		add(new VisLabel("Segments: image, weight")).colspan(2).row();
-		add(segmentRows).colspan(2).row();
-		add(add).colspan(2).pad(4).row();
-		add(new VisLabel("Seed")).padRight(6);
-		Table seedRow = new Table();
-		seedRow.add(seed).width(width * 0.4f);
-		seedRow.add(reroll).padLeft(4);
-		add(seedRow).left().row();
-		add(length).colspan(2).row();
-		add(repeats).colspan(2).row();
-		add(cycle).width(width * 0.9f).colspan(2).row();
+		line("Segments", new VisLabel("image, weight"));
+		wide(segmentRows);
+		// Across both columns: the button's words are wider than the control column of a 1300-px window.
+		wide(leftAligned(add, 0));
+		line("Seed", seed, reroll);
+		seedCell(seed);
+		line("Cycle length", leftAligned(length, GVars_UI.fontSize() * 6));
+		under(repeats);
+		// Wrapped to the control column, which gives the label its width (a wrapped label asks for none).
+		line("Cycle", cycle);
 	}
+
+	/** A control at its own width, at the left of its line: a spinner's field would stretch across the panel. */
+	private static Table leftAligned(com.badlogic.gdx.scenes.scene2d.Actor actor, float width)
+	{
+		Table table = new Table();
+		com.badlogic.gdx.scenes.scene2d.ui.Cell<?> cell = table.left().add(actor);
+		if (width > 0)
+			cell.width(width);
+		return table;
+	}
+
+	/** A text field asks for a fixed 150 px: let the seed's take what its line has left, down to nothing. */
+	private static void seedCell(TextField field)
+	{((Table) field.getParent()).getCell(field).minWidth(0).prefWidth(0);}
 
 	private void onChange(com.badlogic.gdx.scenes.scene2d.Actor actor, Runnable action)
 	{
@@ -186,8 +203,9 @@ public class VE_Tab_Texture_Sequence extends Table
 			int index = i;
 			String name = "texture.sequence.segment." + i;
 
-			VisLabel title = new VisLabel(letter(i) + "  " + regionName(regions.get(i)));
+			VisLabel title = new VisLabel(regionName(regions.get(i)));
 			title.setName(name);
+			title.setEllipsis(true);
 			IntSpinnerModel weightModel = new IntSpinnerModel(segments.get(i).weight, 0, 1000);
 			Spinner weight = new Spinner("", weightModel);
 			weight.setName(name + ".weight");
@@ -206,11 +224,12 @@ public class VE_Tab_Texture_Sequence extends Table
 			onChange(down, () -> move(index, +1));
 			onChange(remove, () -> remove(index));
 
-			segmentRows.add(title).left().padRight(4);
-			segmentRows.add(weight);
-			segmentRows.add(up).padLeft(2);
-			segmentRows.add(down).padLeft(2);
-			segmentRows.add(remove).padLeft(2).row();
+			// Its letter in the name column, then the image (cut short when long), the weight and the buttons.
+			Table row = new Table();
+			// No width of its own (an ellipsis label asks for its whole text): it takes what the line has left.
+			row.add(title).growX().minWidth(0).prefWidth(0).left();
+			row.add(weight).width(GVars_UI.fontSize() * 3.5f).padLeft(4);
+			segmentRows.line(letter(i), row, up, down, remove);
 		}
 
 		seed.setText(Integer.toString(layer.getSequenceSeed()));
@@ -225,7 +244,7 @@ public class VE_Tab_Texture_Sequence extends Table
 		ParallaxLayer layer = currentlySelectedParallax;
 		repeats.setText(String.format("repeats every %.1f screens", layer.getTotalWidth() / layer.getWorldWidth()));
 
-		StringBuilder letters = new StringBuilder("Cycle: ");
+		StringBuilder letters = new StringBuilder();
 		int shown = Math.min(layer.getSequenceLength(), CYCLE_LETTERS_SHOWN);
 		for (int slot = 0; slot < shown; slot++)
 			letters.append(letter(layer.getCycleSegment(slot)));

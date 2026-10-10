@@ -2,13 +2,11 @@ package jks.tools2d.parallax.editor.vue.edition;
 
 import static jks.tools2d.parallax.editor.gvars.GVars_UI.baseSkin;
 import static jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition.getDefaults;
-import static jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition.sizeTabsBar;
 import static jks.tools2d.parallax.editor.gvars.GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width;
 import static jks.tools2d.parallax.editor.vue.Vue_Edition.parallax_Heart;
 import static jks.tools2d.libgdxutils.Utils_Interface.onChange;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
@@ -16,8 +14,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.util.dialog.Dialogs.OptionDialogType;
 import com.kotcrab.vis.ui.util.dialog.OptionDialogAdapter;
+import com.kotcrab.vis.ui.widget.Tooltip;
+import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.JksTextureList;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.ParallaxLayer;
@@ -36,13 +37,10 @@ public class VE_Tab_TextureList_Adding extends Tab
 {
 	public static JksTextureList imageList;
 
-	private static final int divisionPower_small = 5;
-	private static final int divisionPower_large = 4;
-
 	private final Table mainTable = new Table();
-	private final float buttonSize_small, buttonSize_large;
-
-	private boolean baseButtonShow, switchButtonShow;
+	/** The selected image's buttons, on a line above the list (r68): add, swap and remove, or switch for and cancel. */
+	private final Table buttons = new Table();
+	private final VisLabel buttonsName = new VisLabel();
 
 	private final ImageButton button_addData, button_changeData, button_removeData;
 	private final ImageButton button_switchFor, button_cancel;
@@ -54,14 +52,13 @@ public class VE_Tab_TextureList_Adding extends Tab
 	{
 		super(false, false);
 
-		buttonSize_small = size_Bloc_Selection_Parallax_Width / (float) divisionPower_small;
-		buttonSize_large = size_Bloc_Selection_Parallax_Width / (float) divisionPower_large;
-
-		button_addData = squareButton("editor/interfaces/button_add.png", buttonSize_small);
-		button_changeData = squareButton("editor/interfaces/button_transform.png", buttonSize_small);
-		button_removeData = squareButton("editor/interfaces/delete.png", buttonSize_small);
-		button_switchFor = squareButton("editor/interfaces/button_transform.png", buttonSize_large);
-		button_cancel = squareButton("editor/interfaces/delete.png", buttonSize_large);
+		// A line's height, which grows with the font.
+		float buttonSize = GVars_UI.fontSize() * 2.2f;
+		button_addData = squareButton("editor/interfaces/button_add.png", buttonSize);
+		button_changeData = squareButton("editor/interfaces/button_transform.png", buttonSize);
+		button_removeData = squareButton("editor/interfaces/delete.png", buttonSize);
+		button_switchFor = squareButton("editor/interfaces/button_transform.png", buttonSize);
+		button_cancel = squareButton("editor/interfaces/delete.png", buttonSize);
 
 		button_addData.setName("adding.add");
 		button_changeData.setName("adding.change");
@@ -69,28 +66,25 @@ public class VE_Tab_TextureList_Adding extends Tab
 		button_switchFor.setName("adding.switchFor");
 		button_cancel.setName("adding.cancel");
 
+		new Tooltip.Builder("Add it as a layer").target(button_addData).build();
+		new Tooltip.Builder("Make the layers using another image use this one").target(button_changeData).build();
+		new Tooltip.Builder("Remove it").target(button_removeData).build();
+		new Tooltip.Builder("Their layers use this image instead").target(button_switchFor).build();
+		new Tooltip.Builder("Cancel").target(button_cancel).build();
+
 		onChange(button_addData, this::addSelectedAsLayer);
 		onChange(button_changeData, () ->
 		{
 			changingRegion = imageList.getSelected();
-			showBaseButton(false);
-			showSwitchButton(true);
+			showSwitching(true);
 		});
 		onChange(button_removeData, this::askRemoveSelected);
 		onChange(button_switchFor, () ->
 		{
 			Utils_Texture.changeTextureInPage(changingRegion, imageList.getSelected());
-			showBaseButton(true);
-			showSwitchButton(false);
+			showSwitching(false);
 		});
-		onChange(button_cancel, () ->
-		{
-			showBaseButton(true);
-			showSwitchButton(false);
-		});
-
-		showBaseButton(false);
-		showSwitchButton(false);
+		onChange(button_cancel, () -> showSwitching(false));
 
 		imageList = buildImageList();
 		imageList.setName("adding.imageList");
@@ -98,16 +92,16 @@ public class VE_Tab_TextureList_Adding extends Tab
 
 		ScrollPane scrollPane = new ScrollPane(imageList, baseSkin);
 		scrollPane.setFadeScrollBars(false);
-		scrollPane.setWidth(size_Bloc_Selection_Parallax_Width);
-		scrollPane.setHeight(Gdx.graphics.getHeight() - sizeTabsBar * 2);
 
-		mainTable.setSize(scrollPane.getWidth(), scrollPane.getHeight());
-		mainTable.addActor(scrollPane);
-		mainTable.addActor(button_addData);
-		mainTable.addActor(button_changeData);
-		mainTable.addActor(button_removeData);
-		mainTable.addActor(button_switchFor);
-		mainTable.addActor(button_cancel);
+		JksForm actions = new JksForm();
+		actions.pad(4, 8, 4, 8);
+		buttons.left();
+		actions.line(buttonsName, buttons);
+		showSwitching(false);
+
+		mainTable.top();
+		mainTable.add(actions).growX().row();
+		mainTable.add(scrollPane).grow();
 	}
 
 	private static ImageButton squareButton(String image, float size)
@@ -123,25 +117,7 @@ public class VE_Tab_TextureList_Adding extends Tab
 		{
 			@Override
 			public void choiceAction(TextureRegion item)
-			{
-				if (!baseButtonShow && !switchButtonShow)
-					showBaseButton(true);
-			}
-
-			/** Keeps the buttons on the selected row, hidden when it scrolls under the tab bar. */
-			@Override
-			public void drawOnSelected(Batch batch, float x, float y, float width, float itemHeight)
-			{
-				hideAll(y > Gdx.graphics.getHeight() - size_Bloc_Selection_Parallax_Width / 2.3f);
-
-				float centerY = y + size_Bloc_Selection_Parallax_Width / 4f;
-				button_addData.setPosition(x + buttonSize_small * 0.5f, centerY - buttonSize_small / 2);
-				button_changeData.setPosition(x + buttonSize_small * 2.0f, centerY - buttonSize_small / 2);
-				button_removeData.setPosition(x + buttonSize_small * 3.5f, centerY - buttonSize_small / 2);
-
-				button_switchFor.setPosition(x + buttonSize_large * 0.5f, centerY - buttonSize_large / 2);
-				button_cancel.setPosition(x + buttonSize_large * 2.0f, centerY - buttonSize_large / 2);
-			}
+			{update();}
 		};
 	}
 
@@ -177,7 +153,7 @@ public class VE_Tab_TextureList_Adding extends Tab
 			{
 				Utils_LoadingImages.removeFile(region, true);
 				imageList.clearSelected();
-				showBaseButton(false);
+				update();
 				GVars_Vue_Edition.refreshActiveTab();
 			}
 
@@ -207,37 +183,35 @@ public class VE_Tab_TextureList_Adding extends Tab
 
 	public void update()
 	{
-		boolean hasImages = imageList.getItems().size > 0;
-		showBaseButton(hasImages && imageList.getSelected() != null && !switchButtonShow);
-		if (!hasImages)
-			showSwitchButton(false);
+		if (imageList.getItems().size == 0)
+		{
+			showSwitching(false);
+			return;
+		}
+		enable(button_addData, imageList.getSelected() != null);
+		enable(button_changeData, imageList.getSelected() != null);
+		enable(button_removeData, imageList.getSelected() != null);
+		enable(button_switchFor, imageList.getSelected() != null && imageList.getSelected() != changingRegion);
 	}
 
-	private void hideAll(boolean hide)
+	/** Disabled and faded: the line keeps its buttons where they are, nothing selected or not. */
+	private static void enable(ImageButton button, boolean enabled)
 	{
-		boolean base = baseButtonShow, switching = switchButtonShow;
-		button_addData.setVisible(!hide && base);
-		button_changeData.setVisible(!hide && base);
-		button_removeData.setVisible(!hide && base);
-		button_switchFor.setVisible(!hide && switching);
-		button_cancel.setVisible(!hide && switching);
+		button.setDisabled(!enabled);
+		button.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
+		button.getColor().a = enabled ? 1 : 0.35f;
 	}
 
-	private void showBaseButton(boolean show)
+	/** The line holds add, swap and remove, or, while choosing the image to swap to, switch for and cancel. */
+	private void showSwitching(boolean show)
 	{
-		baseButtonShow = show;
-		button_addData.setVisible(show);
-		button_changeData.setVisible(show);
-		button_removeData.setVisible(show);
-	}
-
-	private void showSwitchButton(boolean show)
-	{
-		switchButtonShow = show;
-		button_switchFor.setVisible(show);
-		button_cancel.setVisible(show);
 		if (!show)
 			changingRegion = null;
+		buttonsName.setText(show ? "Swap for" : "Selected");
+		buttons.clearChildren();
+		for (ImageButton button : show ? new ImageButton[] { button_switchFor, button_cancel } : new ImageButton[] { button_addData, button_changeData, button_removeData })
+			buttons.add(button).padRight(6);
+		update();
 	}
 
 	@Override

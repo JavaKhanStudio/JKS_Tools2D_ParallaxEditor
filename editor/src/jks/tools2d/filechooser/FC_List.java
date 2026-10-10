@@ -395,6 +395,10 @@ public class FC_List extends FileChooser
 		setDirectory(dir, true);
 	}
 
+	/** The folder listed. */
+	public FileHandle getDirectory()
+	{return directory;}
+
 	/** sets {@link #directory} and updates all things that need to be udpated */
 	public void setDirectory(FileHandle dir, boolean addToHistory)
 	{

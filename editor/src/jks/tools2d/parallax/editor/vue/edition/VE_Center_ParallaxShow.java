@@ -21,10 +21,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.CheckBox.CheckBoxStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Align;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 
 import jks.tools2d.libgdxutils.JksCheckBox;
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.libgdxutils.Utils_Interface;
 import jks.tools2d.parallax.editor.gvars.EditorPaths;
 import jks.tools2d.parallax.editor.gvars.FVars_Extensions;
@@ -188,21 +190,33 @@ public class VE_Center_ParallaxShow extends Table
 		resetPosition.setName("preview.resetPosition");
 		onChange(resetPosition, () -> parallax_Heart.parallaxReader.resetPositions());
 
-		Table speedSlider = new Table();
-		speedSlider.setSize(getWidth() / 2 - buttonSize, buttonSize);
+		// Lines (r68): each speed's name, its slider, its value and its reset, left of the play button.
+		JksForm speedSlider = new JksForm();
+		speedSlider.line("Speed X", parallaxSpeedXSlider, valueLabel(parallaxSpeedXSlider, "preview.speedX.value"), resetSpeedX);
+		speedSlider.line("Speed Y", parallaxSpeedYSlider, valueLabel(parallaxSpeedYSlider, "preview.speedY.value"), resetSpeedY);
+		Table resetRow = new Table();
+		resetRow.left().add(resetPosition);
+		speedSlider.under(resetRow);
+		speedSlider.setSize(parr_Size_X / 2f - buttonSize, speedSlider.getPrefHeight());
 		speedSlider.setPosition(buttonSize / 3, getHeight() / 2 - speedSlider.getHeight() / 2);
-		speedSlider.add(new Label("Speed X", baseSkin));
-		speedSlider.add(parallaxSpeedXSlider);
-		speedSlider.add(resetSpeedX);
-		speedSlider.row();
-		speedSlider.add(new Label("Speed Y", baseSkin));
-		speedSlider.add(parallaxSpeedYSlider);
-		speedSlider.add(resetSpeedY);
-		speedSlider.row();
-		speedSlider.add(resetPosition).colspan(3);
 
 		addActor(startStop);
 		addActor(speedSlider);
 		addActor(fullScreen);
+	}
+
+	/** The slider's value, kept beside it, as wide as "-15.00" in the font. */
+	private static Table valueLabel(Slider slider, String name)
+	{
+		Label value = new Label("", baseSkin);
+		value.setAlignment(Align.right);
+		value.setName(name);
+		Runnable show = () -> value.setText(String.format("%.2f", slider.getValue()));
+		show.run();
+		slider.addListener(Utils_Interface.changeListener(show));
+		// A fixed width: the slider would shift as the value's digits change.
+		Table fixed = new Table();
+		fixed.add(value).width(GVars_UI.fontSize() * 3.2f).right();
+		return fixed;
 	}
 }

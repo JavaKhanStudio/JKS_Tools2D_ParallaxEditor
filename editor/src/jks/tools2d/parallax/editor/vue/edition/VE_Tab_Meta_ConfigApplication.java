@@ -8,12 +8,11 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.utils.Align;
 import com.kotcrab.vis.ui.widget.VisCheckBox;
-import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.parallax.editor.gvars.GVars_UI;
 import jks.tools2d.parallax.editor.vue.Vue_Edition;
 
@@ -22,7 +21,7 @@ public class VE_Tab_Meta_ConfigApplication extends Tab
 {
 	private static final int MIN_WIDTH = 1100;
 
-	private final Table mainTable = new Table();
+	private final JksForm mainTable = new JksForm();
 	private final VisCheckBox vSynchCheckBox;
 	private final VisCheckBox fullScreenCheckBox;
 	private final SelectBox<String> resolutionBox;
@@ -55,12 +54,19 @@ public class VE_Tab_Meta_ConfigApplication extends Tab
 		apply.getLabel().setStyle(GVars_UI.labelStyle_OptionsTitle);
 		onChange(apply, () -> applyWindowMode());
 
-		mainTable.top().pad(8);
-		mainTable.add(new VisLabel("Window size")).align(Align.left).padRight(10);
-		mainTable.add(resolutionBox).align(Align.left).row();
-		mainTable.add(fullScreenCheckBox).colspan(2).align(Align.left).row();
-		mainTable.add(vSynchCheckBox).colspan(2).align(Align.left).row();
-		mainTable.add(apply).colspan(2).padTop(10);
+		// Lines (r68): the size's name left of its box, the switches and Apply under it.
+		mainTable.pad(8);
+		mainTable.line("Window size", leftAligned(resolutionBox));
+		mainTable.under(leftAligned(fullScreenCheckBox));
+		mainTable.under(leftAligned(vSynchCheckBox));
+		mainTable.under(leftAligned(apply));
+	}
+
+	private static Table leftAligned(com.badlogic.gdx.scenes.scene2d.Actor actor)
+	{
+		Table table = new Table();
+		table.left().add(actor);
+		return table;
 	}
 
 	/** 16:9-ish sizes offered by the current monitor, plus the current window size. */

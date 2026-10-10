@@ -1,0 +1,39 @@
+# r68: the controls the panels' new lines moved still work. Adding new's buttons, now a "Selected" line above the
+# list: add (a layer more), change then switch for / cancel; a segment's weight and the sequence's seed.
+#   sed "s/SET/r68after/" tools/r68-controls-probe.txt | PROBE_SIZE=1300x800 tools/driver-probe.sh
+# (r67-every-panel.txt's setup gives build/r67/td.)
+sleep 3
+open build/r67/td/shaders/s02.jplax
+sleep 2
+click tab.addTexture
+click tab.addTexture.addingNew
+sleep 1
+# The first click adds the image the list holds selected, if any (none: the buttons are faded and do nothing).
+click adding.add
+set adding.imageList 1
+sleep 1
+click adding.add
+sleep 1
+bounds texture.selection
+click tab.addTexture
+click tab.addTexture.addingNew
+sleep 1
+click adding.change
+sleep 1
+shot build/r67/SET/probe-adding-swapping.png
+bounds adding.switchFor
+bounds adding.cancel
+click adding.cancel
+sleep 1
+bounds adding.remove
+click tab.textures
+set texture.selection 1
+set texture.kind SEQUENCE
+click texture.sequence.add
+sleep 1
+set texture.sequence.segment.0.weight 0
+sleep 1
+shot build/r67/SET/probe-sequence-weight0.png
+set texture.sequence.seed 42
+sleep 1
+shot build/r67/SET/probe-sequence-seed42.png

@@ -14,6 +14,7 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 
+import jks.tools2d.libgdxutils.JksForm;
 import jks.tools2d.parallax.editor.gvars.GVars_Heart_Editor;
 import jks.tools2d.parallax.editor.gvars.GVars_UI;
 import jks.tools2d.parallax.editor.vue.Vue_Selection;
@@ -22,7 +23,7 @@ import jks.tools2d.parallax.editor.vue.edition.utils.Utils_Saving;
 /** Parallax settings: tiling axes, atlas in use, packing of loose images, back to the start screen. */
 public class VE_Tab_Meta_ConfigParallax extends Tab
 {
-	private final Table mainTable = new Table();
+	private final JksForm mainTable = new JksForm();
 	private final VisCheckBox repeatOnX, repeatOnY;
 	private final VisLabel atlasNameLabel = new VisLabel();
 
@@ -30,7 +31,7 @@ public class VE_Tab_Meta_ConfigParallax extends Tab
 	{
 		super(false, false);
 
-		repeatOnX = new VisCheckBox("Repeat On X");
+		repeatOnX = new VisCheckBox("On X");
 		repeatOnX.setName("parallax.repeatX");
 		onChange(repeatOnX, () ->
 		{
@@ -38,7 +39,7 @@ public class VE_Tab_Meta_ConfigParallax extends Tab
 			parallax_Heart.parallaxReader.resetPositions();
 		});
 
-		repeatOnY = new VisCheckBox("Repeat On Y");
+		repeatOnY = new VisCheckBox("On Y");
 		repeatOnY.setName("parallax.repeatY");
 		onChange(repeatOnY, () ->
 		{
@@ -85,15 +86,17 @@ public class VE_Tab_Meta_ConfigParallax extends Tab
 					});
 		});
 
-		mainTable.top().pad(8);
-		mainTable.add(new VisLabel("-- Configuration --")).colspan(2).row();
-		mainTable.add(repeatOnX);
-		mainTable.add(repeatOnY).row();
+		// Lines (r68): each setting's name left of it, the two actions under them.
+		mainTable.pad(8);
+		Table repeat = new Table();
+		repeat.left().add(repeatOnX).padRight(12);
+		repeat.add(repeatOnY);
+		mainTable.line("Repeat", repeat);
 		atlasNameLabel.setName("parallax.atlasName");
-		mainTable.add(atlasNameLabel).colspan(2).row();
-		mainTable.add(packUpTextures).colspan(2).row();
-		mainTable.add(new VisLabel("-- Parameter --")).colspan(2).row();
-		mainTable.add(returnOption).colspan(2).row();
+		atlasNameLabel.setEllipsis(true);
+		mainTable.line("Atlas", atlasNameLabel);
+		mainTable.under(leftAligned(packUpTextures));
+		mainTable.under(leftAligned(returnOption));
 	}
 
 	public void update()
@@ -106,7 +109,14 @@ public class VE_Tab_Meta_ConfigParallax extends Tab
 		repeatOnY.setProgrammaticChangeEvents(true);
 
 		String atlasName = parallax_Heart.getAtlasName();
-		atlasNameLabel.setText("Current atlas : " + (atlasName == null || atlasName.isEmpty() ? "none selected" : atlasName));
+		atlasNameLabel.setText(atlasName == null || atlasName.isEmpty() ? "none selected" : atlasName);
+	}
+
+	private static Table leftAligned(com.badlogic.gdx.scenes.scene2d.Actor actor)
+	{
+		Table table = new Table();
+		table.left().add(actor);
+		return table;
 	}
 
 	@Override

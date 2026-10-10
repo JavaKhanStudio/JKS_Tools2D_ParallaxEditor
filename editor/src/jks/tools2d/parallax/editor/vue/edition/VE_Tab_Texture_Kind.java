@@ -70,11 +70,11 @@ public class VE_Tab_Texture_Kind extends JksForm
 	private final Runnable onKindChanged;
 	private boolean updating;
 
-	public VE_Tab_Texture_Kind(float width, float nameWidth, Runnable onKindChanged)
+	public VE_Tab_Texture_Kind(float nameWidth, Runnable onKindChanged)
 	{
 		super(nameWidth);
 		this.onKindChanged = onKindChanged;
-		sequenceRows = new VE_Tab_Texture_Sequence(width, onKindChanged);
+		sequenceRows = new VE_Tab_Texture_Sequence(nameWidth, onKindChanged);
 
 		kind.setName("texture.kind");
 		name.setName("texture.name");

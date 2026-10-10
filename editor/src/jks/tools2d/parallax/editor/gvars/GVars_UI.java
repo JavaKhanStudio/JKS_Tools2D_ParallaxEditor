@@ -116,11 +116,16 @@ public final class GVars_UI
 			previous.dispose();
 	}
 
-	/** Regenerates the font if the window changed size since it was made: a screen built after a resize elsewhere. */
-	public static void fitWindow()
+	/**
+	 * Regenerates the font if the window changed size since it was made: a screen built after a resize elsewhere.
+	 * Returns true when it did: every label and button built before draws the disposed font, so rebuild them.
+	 */
+	public static boolean fitWindow()
 	{
-		if (fontBuiltSize != fontSize())
-			resize();
+		if (fontBuiltSize == fontSize())
+			return false;
+		resize();
+		return true;
 	}
 
 	/**

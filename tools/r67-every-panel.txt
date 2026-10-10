@@ -1,13 +1,24 @@
 # r67: every panel of the editor at its default window (cage's 1280x720), to judge how compact and readable it is:
 # the s02 shader page (its FOG layer, 4, is the effect panel), every tab, then the bottom of the Textures tab, which
 # should need no scrolling for the effect rows. Shots in editor/build/r67/$R67_SET (a folder per run: before, after).
+# r68 extended it: the start screen (and the same after a resize on it), a SEQUENCE layer of four segments, the preview
+# bar, then every panel again after 'resize 1920 1080' (the "1920-" shots) and the start screen it returns to.
+# Run it in a 1300x800 window, which the driver can resize (cage's own output refuses one):
 #   mkdir -p editor/build/r67/td
 #   cp -r ../JKS_Tools2D_ParallaxBackground/core/test-data/{samples,shaders} editor/build/r67/td/
 #   cp ../JKS_Tools2D_ParallaxBackground/engines/godot/tests/shaders/s02.jplax editor/build/r67/td/shaders/
-#   sed "s/SET/after/" tools/r67-every-panel.txt | tools/driver-probe.sh
+#   sed "s/SET/after/" tools/r67-every-panel.txt | PROBE_SIZE=1300x800 tools/driver-probe.sh
+# Pair two runs: python3 tools/r67-before-after.py editor/build/r67/before editor/build/r67/after OUT
 sleep 3
+shot build/r67/SET/start.png
+resize 1920 1080
+sleep 2
+shot build/r67/SET/1920-start-resized.png
+resize 1300 800
+sleep 2
 open build/r67/td/shaders/s02.jplax
 sleep 2
+shot build/r67/SET/preview.png
 click tab.controls
 click tab.controls.parallax
 sleep 1
@@ -24,12 +35,13 @@ sleep 1
 shot build/r67/SET/addTexture-defaultValue.png
 click tab.addTexture.addingNew
 sleep 1
+set adding.imageList 1
+sleep 1
 shot build/r67/SET/addTexture-addingNew.png
 click tab.textures
 set texture.selection 4
 sleep 1
 shot build/r67/SET/textures-fog.png
-list
 wheel texture.selectFirst 20
 sleep 1
 shot build/r67/SET/textures-fog-scrolled.png
@@ -51,4 +63,81 @@ sleep 1
 shot build/r67/SET/textures-particles.png
 set texture.kind SEQUENCE
 sleep 1
+# Three more segments, from the image selected in Adding new: the tallest Textures tab.
+click texture.sequence.add
+click texture.sequence.add
+click texture.sequence.add
+sleep 1
 shot build/r67/SET/textures-sequence.png
+list
+wheel texture.selectFirst 20
+sleep 1
+shot build/r67/SET/textures-sequence-scrolled.png
+# The same at 1920x1080: the editor reopened in the larger window, every panel rebuilt.
+resize 1920 1080
+sleep 2
+open build/r67/td/shaders/s02.jplax
+sleep 2
+shot build/r67/SET/1920-preview.png
+click tab.controls
+click tab.controls.parallax
+sleep 1
+shot build/r67/SET/1920-controls-parallax.png
+click tab.controls.application
+sleep 1
+shot build/r67/SET/1920-controls-application.png
+click tab.controls.infos
+sleep 1
+shot build/r67/SET/1920-controls-infos.png
+click tab.addTexture
+click tab.addTexture.defaultValue
+sleep 1
+shot build/r67/SET/1920-addTexture-defaultValue.png
+click tab.addTexture.addingNew
+sleep 1
+set adding.imageList 1
+sleep 1
+shot build/r67/SET/1920-addTexture-addingNew.png
+click tab.textures
+set texture.selection 4
+sleep 1
+shot build/r67/SET/1920-textures-fog.png
+wheel texture.selectFirst 20
+sleep 1
+shot build/r67/SET/1920-textures-fog-scrolled.png
+set texture.selection 1
+sleep 1
+shot build/r67/SET/1920-textures-image.png
+click tab.background
+click tab.background.topSquare
+sleep 1
+shot build/r67/SET/1920-background-topSquare.png
+click tab.background.fog
+sleep 1
+shot build/r67/SET/1920-background-fog.png
+# The other kinds' own lines, on layer 1 (nothing is saved).
+click tab.textures
+set texture.selection 1
+set texture.kind PARTICLES
+sleep 1
+shot build/r67/SET/1920-textures-particles.png
+set texture.kind SEQUENCE
+sleep 1
+# Three more segments, from the image selected in Adding new: the tallest Textures tab.
+click texture.sequence.add
+click texture.sequence.add
+click texture.sequence.add
+sleep 1
+shot build/r67/SET/1920-textures-sequence.png
+list
+wheel texture.selectFirst 20
+sleep 1
+shot build/r67/SET/1920-textures-sequence-scrolled.png
+# Back to the start screen, at 1920.
+click tab.controls
+click tab.controls.parallax
+click parallax.returnToSelection
+sleep 1
+click text:No
+sleep 2
+shot build/r67/SET/1920-start-returned.png

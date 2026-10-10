@@ -77,7 +77,7 @@ public class VE_Tab_Texture extends Tab
 			new LayerSlider("padX", "Pad X", 0, 50, 0.1f, ParallaxLayer::getPadX, ParallaxLayer::setPadX),
 			new LayerSlider("padY", "Pad Y", 0, 50, 0.05f, ParallaxLayer::getPadY, ParallaxLayer::setPadY));
 
-	private final VE_Tab_Texture_Kind kindSection = new VE_Tab_Texture_Kind(GVars_Vue_Edition.size_Bloc_Selection_Parallax_Width, nameWidth, this::update);
+	private final VE_Tab_Texture_Kind kindSection = new VE_Tab_Texture_Kind(nameWidth, this::update);
 
 	private boolean updating;
 

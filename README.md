@@ -69,7 +69,8 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
 
 ### Edition screen
 
-- **Center:** the live preview. Use play/pause, full screen, the X/Y speed sliders and "Reset position".
+- **Center:** the live preview. Use play/pause, full screen, the X/Y speed sliders (each with its value and a reset to
+  0) and "Reset position".
   Arrows/WASD (and space) scroll it by hand.
 - **Top:** project folder and name. The two save buttons are **Save project** (`.plaxpj`) and **Export** (`.plax` and/or
   `.jplax`, see the format checkboxes). **ETC2** and **Pixel art**, with them, are saved with the project: see "Loose
@@ -77,8 +78,9 @@ from it. **NEW** starts an empty project. Files can also be dragged onto the win
 - **Left tabs:**
   - **Controls:** help and tutorial links; **Parallax** (repeat on X/Y, current atlas, copy loose images next to the
     project, back to the start screen); **Application** (window size, full screen, VSync).
-  - **Add texture:** **Adding new** is the list of images. The selected image has three buttons: *add it as a layer*,
-    *make the layers of this image use another one*, and *delete it*. **Default Value** sets the settings of the
+  - **Add texture:** **Adding new** is the list of images. The **Selected** line above it holds the selected image's
+    three buttons: *add it as a layer*, *make the layers of this image use another one* (the line becomes **Swap for**:
+    select the other image, then its switch button, or cancel), and *delete it*. **Default Value** sets the settings of the
     next added layer, and how they change after each addition (speeds are multiplied, the rest is added), which
     quickly builds a stack of layers with depth.
   - **Textures:** every setting of the selected layer: its position in the stack, clone, set as default, delete/undo,

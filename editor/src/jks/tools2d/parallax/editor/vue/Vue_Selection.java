@@ -18,7 +18,6 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
@@ -43,12 +42,18 @@ public class Vue_Selection extends AVue_Model
 {
 	private static final float sizeMultChooser = 0.7f;
 
+	private FC_List chooser;
+	private TextButton createNew;
+	private Label title;
+
 	@Override
 	public void init()
 	{
+		// Back from the edition screen, or opened in a window resized before: the font follows the window.
+		GVars_UI.fitWindow();
 		FileHandle filesRoot = Gdx.files.absolute(EditorPaths.filesRoot().toString());
 
-		FC_List chooser = new FC_List(baseSkin, new FileChooser_Listener()
+		chooser = new FC_List(baseSkin, new FileChooser_Listener()
 		{
 			@Override
 			public void choose(FileHandle file)
@@ -62,8 +67,6 @@ public class Vue_Selection extends AVue_Model
 			public void cancel()
 			{} // no cancel button here
 		});
-		chooser.setSize(Gdx.graphics.getWidth() * sizeMultChooser, Gdx.graphics.getHeight() * sizeMultChooser);
-		chooser.setPosition(Gdx.graphics.getWidth() / 2f - chooser.getWidth() / 2, Gdx.graphics.getHeight() / 2f - chooser.getHeight() / 2);
 		chooser.setFileFilter(buildFileFilter());
 		// The start screen has nothing to cancel back to.
 		chooser.setCancelable(false);
@@ -71,7 +74,7 @@ public class Vue_Selection extends AVue_Model
 
 		chooser.setName("selection.chooser");
 
-		TextButton createNew = new TextButton("NEW", baseSkin);
+		createNew = new TextButton("NEW", baseSkin);
 		createNew.setName("selection.new");
 		onChange(createNew, () ->
 		{
@@ -82,22 +85,34 @@ public class Vue_Selection extends AVue_Model
 			relativePath = projectInfos.projectPath;
 			GVars_Heart_Editor.changeVue(new Vue_Edition(), true);
 		});
-		int buttonSize = (int) (chooser.getX() * 0.75f);
-		createNew.setBounds((chooser.getX() - buttonSize) / 2, Gdx.graphics.getHeight() / 2f - buttonSize / 2f, buttonSize, buttonSize);
 
-		LabelStyle titleStyle = new LabelStyle(baseSkin.get(LabelStyle.class));
-		titleStyle.fontColor = Color.LIGHT_GRAY;
-		Label title = new Label("Open a project (." + PARALLAX_PROJECT + "), a parallax (." + PARALLAX + " / ." + JSON_PARALLAX + ")"
-				+ "\nor an atlas (." + ATLAS + ") to create a new project from it", titleStyle);
+		title = new Label("Open a project (." + PARALLAX_PROJECT + "), a parallax (." + PARALLAX + " / ." + JSON_PARALLAX + ")"
+				+ "\nor an atlas (." + ATLAS + ") to create a new project from it", baseSkin);
+		// Tinted, not a copied style: a copy keeps the font a resize disposes (GVars_UI.resize swaps the skin's own).
+		title.setColor(Color.LIGHT_GRAY);
 		title.setAlignment(Align.center);
-		title.setSize(chooser.getWidth(), (Gdx.graphics.getHeight() - chooser.getHeight()) / 2);
-		title.setPosition(chooser.getX(), chooser.getY() + chooser.getHeight());
+		layout();
 
 		GVars_UI.mainUi.addActor(createNew);
 		GVars_UI.mainUi.addActor(chooser);
 		GVars_UI.mainUi.addActor(title);
 		// The chooser's arrow, backspace and Enter keys only reach it while it or a child holds the focus.
 		GVars_UI.mainUi.setKeyboardFocus(chooser);
+	}
+
+	/** Places the chooser, NEW and the title from the window's size: at init and after every resize (r68). */
+	private void layout()
+	{
+		float width = Gdx.graphics.getWidth(), height = Gdx.graphics.getHeight();
+		chooser.setSize(width * sizeMultChooser, height * sizeMultChooser);
+		chooser.setPosition(width / 2f - chooser.getWidth() / 2, height / 2f - chooser.getHeight() / 2);
+
+		// Square, in the margin left of the chooser, never narrower than its word.
+		float buttonSize = Math.max(chooser.getX() * 0.75f, createNew.getPrefWidth());
+		createNew.setBounds((chooser.getX() - buttonSize) / 2, height / 2f - buttonSize / 2f, buttonSize, buttonSize);
+
+		title.setSize(chooser.getWidth(), (height - chooser.getHeight()) / 2);
+		title.setPosition(chooser.getX(), chooser.getY() + chooser.getHeight());
 	}
 
 	private static FileFilter buildFileFilter()
@@ -171,5 +186,16 @@ public class Vue_Selection extends AVue_Model
 
 	@Override
 	public void resize(int width, int height)
-	{}
+	{
+		if (!GVars_UI.fitWindow())
+		{
+			layout();
+			return;
+		}
+		// A new font: the widgets still hold the old one, disposed. Built again, in the folder the chooser was in.
+		FileHandle directory = chooser.getDirectory();
+		GVars_UI.mainUi.clear();
+		init();
+		chooser.setDirectory(directory);
+	}
 }

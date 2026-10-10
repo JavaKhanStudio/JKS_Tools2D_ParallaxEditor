@@ -29,6 +29,11 @@ only sanctioned global style change. The left panel's width follows it so the fo
 never wrap. A panel is a libgdxutils/JksForm: one line a setting, its name left of its
 control (no name on a line above a full-width slider). A size in pixels next to text
 (a button, a field's width) goes stale when the font grows: derive it from fontSize().
+A label or button built before a font change keeps drawing the disposed font (garbled):
+after GVars_UI.fitWindow() returns true, the screen rebuilds its widgets (Vue_Edition,
+Vue_Selection since r68), never copies a style to keep (a copy holds the old font: tint
+the actor with setColor instead). In a line, a text field or an ellipsis label asks for
+its whole width and pushes the panel wider than the window: give its cell prefWidth(0).
 EVERY CONTROL HAS A NAME (setName; tabs via driver/Names): the driver and the
 presenter's scripts (~/Documents/GitHub/presenter) find controls by it. Name a new one;
 a rename breaks them. README.md's "Using the editor" documents every control: fix it in
